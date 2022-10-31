@@ -1,0 +1,24 @@
+* {
+    padding: 0;
+    margin: 0;
+    color: #bbb;
+}
+
+html, body, #app, .n-config-provider {
+    height: 100%
+}
+
+body {
+    background: #222;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+}
+
+.flex {
+    display: flex;
+}
