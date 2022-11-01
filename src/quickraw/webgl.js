@@ -98,23 +98,14 @@ function initTexture(gl) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 }
 
-function updateTexture(gl, width, height, data) {
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, width, height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, data);
-}
-
-export function initWebgl(canvas, width, height) {
-    canvas.width = width;
-    canvas.height = height;
-
+export function initWebgl(canvas) {
     const gl = canvas.getContext(WEBGL, {
         antialias: false,
-        alpha: false,
         depth: false,
         powerPreference: "high-performance",
         preserveDrawingBuffer: false
     });
 
-    
     const program = genProgram(gl, VERTEX, FRAGMENT);
     gl.useProgram(program);
 
@@ -150,6 +141,10 @@ export function initWebgl(canvas, width, height) {
 
 export function render(webgl_instance, img_data, width, height, white_balance, color_matrix, pixels_callback) {
     const { gl, uniform } = webgl_instance;
+    gl.canvas.width = width;
+    gl.canvas.height = height;
+
+    gl.viewport(0, 0, width, height);
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, width, height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
 

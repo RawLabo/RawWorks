@@ -1,6 +1,6 @@
 <script setup>
-defineEmits(['finish']);
-defineProps(['histogram']);
+defineEmits(["finish"]);
+defineProps(["histogram"]);
 </script>
 
 <template>
@@ -19,7 +19,8 @@ export default {
             const max = Math.log2(histogram[256 * 3]);
 
             const canvas = this.$refs.canvas;
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext("2d");
+
             const width = canvas.width;
             const height = canvas.height;
 
@@ -27,23 +28,41 @@ export default {
 
             ctx.globalCompositeOperation = "screen";
 
-
-            [[r, '#f33'], [g, '#3f3'], [b, '#33f']].forEach(([hg, color]) => {
+            [
+                [r, "#f33"],
+                [g, "#3f3"],
+                [b, "#33f"],
+            ].forEach(([hg, color]) => {
                 ctx.beginPath();
-                ctx.moveTo(0, height);
+
+                let moved = false;
+                let last_i_with_value = 0;
+
                 hg.forEach((v, i) => {
-                    ctx.lineTo(i * width / 255, height - Math.log2(v) * height / max);
+                    const h = height - (Math.log2(v) * height) / max;
+                    if (h < height) {
+                        const x = i * width / 256;
+
+                        if (!moved) {
+                            ctx.moveTo(x, height);
+                            moved = true;
+                        }
+
+                        ctx.lineTo(x, h);
+                        last_i_with_value = i;
+                    }
                 });
-                ctx.fillStyle = color
-                ctx.lineTo(width, height);
+                ctx.fillStyle = color;
+                ctx.lineTo(last_i_with_value * width / 256, height);
+
                 ctx.closePath();
                 ctx.fill();
             });
 
-            this.$emit('finish');
-        }
-    }
-}
+            this.$emit("finish");
+        },
+    },
+};
 </script>
 
 <style scoped>

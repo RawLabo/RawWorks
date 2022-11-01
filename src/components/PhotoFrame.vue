@@ -1,78 +1,186 @@
 <script setup>
-defineProps(['img']);
-defineEmits(['histogram_load']);
+defineProps(["img"]);
+defineEmits(["histogram_load"]);
 </script>
 
 <template>
-    <div ref="container" class="container flex-center">
-        <canvas ref="canvas" :style="{ width, height }"></canvas>
-    </div>
+  <div ref="container" class="container flex-center" @wheel="zoom" @mousedown="moveStart" @mousemove="move"
+    @mouseup="moveEnd" @mouseleave="moveEnd">
+    <canvas ref="canvas" :style="{
+      width: width < 0 ? 'auto' : width + 'px',
+      height: height < 0 ? 'auto' : height + 'px',
+      transform: `translate(${left_offset}px, ${top_offset}px)`,
+      transition,
+    }"></canvas>
+    <div class="tip">{{ Math.round(tip.scale * 100) }}%</div>
+  </div>
 </template>
 
 <script>
-import { quickraw, initWebgl, render } from '../quickraw';
+import { quickraw, initWebgl, render, disposeWasm } from "../quickraw";
+
+let move_prev_pos = null;
+
 export default {
-    methods: {
-        updateCanvasTransform() {
-            if (!this.img_info.width) return;
+  methods: {
+    zoom(e) {
+      const container = this.$refs.container;
+      const canvas = this.$refs.canvas;
+      const [p1, _] = this.scale_params;
 
-            const width = this.$refs.container.clientWidth;
-            const height = this.$refs.container.clientHeight;
+      this[p1] += e.deltaY;
 
-            if (width / height > this.img_info.width / this.img_info.height) {
-                this.width = 'auto';
-                this.height = height + 'px';
-            } else {
-                this.width = width + 'px';
-                this.height = 'auto';
-            }
-        }
+      const scales =
+        p1 == "width"
+          ? [e.deltaY, e.deltaY / this.img_info.ratio]
+          : [e.deltaY * this.img_info.ratio, e.deltaY];
+      const zoom_point = [
+        e.pageX - container.offsetLeft,
+        e.pageY - container.offsetTop,
+      ];
+      const img_center_point = [
+        container.clientWidth / 2 + this.left_offset,
+        container.clientHeight / 2 + this.top_offset,
+      ];
+      this.left_offset -=
+        (scales[0] * (zoom_point[0] - img_center_point[0])) /
+        canvas.clientWidth;
+      this.top_offset -=
+        (scales[1] * (zoom_point[1] - img_center_point[1])) /
+        canvas.clientHeight;
+
+      this.tip.opacity = 1;
+      this.checkCanvasTransform();
     },
-    data() {
-        return {
-            img_info: {
-                width: 0,
-                height: 0,
-            },
-            width: 'auto',
-            height: 'auto'
-        }
+    moveStart(e) {
+      move_prev_pos = [e.clientX, e.clientY];
     },
-    watch: {
-        img(img) {
-            const width = img.width
-            const height = img.height
-            const white_balance = img.wb
-            const color_matrix = img.color_matrix
-            const img_data = img.data
+    move(e) {
+      if (move_prev_pos) {
+        this.left_offset += e.clientX - move_prev_pos[0];
+        this.top_offset += e.clientY - move_prev_pos[1];
+        move_prev_pos = [e.clientX, e.clientY];
 
-            this.img_info.width = width;
-            this.img_info.height = height;
-            this.updateCanvasTransform();
-
-            const wegbl_instance = initWebgl(this.$refs.canvas, width, height)
-
-            render(wegbl_instance, img_data, width, height, white_balance, color_matrix, (pixels) => {
-                window.timer.pixels_read = performance.now();
-                const histogram_data = quickraw.calc_histogram(pixels);
-                window.timer.histogram_calced = performance.now();
-                this.$emit('histogram_load', histogram_data);
-            });
-            window.timer.rendered = performance.now();
-        }
+        this.checkCanvasTransform();
+      }
     },
-    mounted() {
-        window.addEventListener('resize', () => {
-            this.updateCanvasTransform();
-        });
-    }
-}
+    moveEnd(e) {
+      move_prev_pos = null;
+    },
+    checkCanvasTransform() {
+      if (!this.img_info.width) return;
+
+      const container = this.$refs.container;
+      const [p1, p2] = this.scale_params;
+
+      // size limit
+      if (this[p1] <= container[p2]) {
+        this[p1] = container[p2];
+        this.left_offset = 0;
+        this.top_offset = 0;
+        this.transition = "transform 0.3s";
+        setTimeout(() => {
+          this.transition = "";
+        }, 300);
+      }
+
+      this.tip.scale = this[p1] / this.img_info[p1];
+    },
+    resetCanvasTransform() {
+      this.scale_params = [];
+      this.width = -1;
+      this.height = -1;
+      this.left_offset = 0;
+      this.top_offset = 0;
+      this.tip.scale = 0;
+      this.tip.opacity = 0;
+    },
+  },
+  data() {
+    return {
+      webgl_instance: null,
+      img_info: {
+        width: 0,
+        height: 0,
+        ratio: 0,
+      },
+      scale_params: [],
+      width: -1,
+      height: -1,
+      left_offset: 0,
+      top_offset: 0,
+      transition: "",
+      tip: {
+        scale: 0,
+        opacity: 0,
+      },
+    };
+  },
+  watch: {
+    img(img) {
+      const container_width = this.$refs.container.clientWidth;
+      const container_height = this.$refs.container.clientHeight;
+
+      this.resetCanvasTransform();
+
+      const width = img.width;
+      const height = img.height;
+      const white_balance = img.wb;
+      const color_matrix = img.color_matrix;
+      const img_data = img.data;
+
+      this.img_info.width = width;
+      this.img_info.height = height;
+      this.img_info.ratio = width / height;
+      this.scale_params =
+        container_width / container_height < width / height
+          ? ["width", "clientWidth"]
+          : ["height", "clientHeight"];
+      this.checkCanvasTransform();
+
+      render(
+        this.webgl_instance,
+        img_data,
+        width,
+        height,
+        white_balance,
+        color_matrix,
+        (pixels) => {
+          window.timer.pixels_read = performance.now();
+          const histogram_data = quickraw.calc_histogram(pixels);
+          window.timer.histogram_calced = performance.now();
+
+          disposeWasm();
+
+          this.$emit("histogram_load", histogram_data);
+        }
+      );
+      window.timer.rendered = performance.now();
+    },
+  },
+  mounted() {
+    this.webgl_instance = initWebgl(this.$refs.canvas);
+
+    window.addEventListener("resize", () => {
+      this.checkCanvasTransform();
+    });
+  },
+};
 </script>
 
 <style scoped>
 .container {
-    background: #111;
-    overflow: hidden;
+  position: relative;
+  background: #111;
+  overflow: hidden;
+}
+
+.tip {
+  position: absolute;
+  bottom: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: default;
 }
 </style>
-

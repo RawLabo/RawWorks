@@ -1,5 +1,5 @@
 <script setup>
-defineProps(['timer'])
+defineProps(["timer"]);
 </script>
 
 <template>
