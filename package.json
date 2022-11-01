@@ -4,7 +4,7 @@
   "description": "A web app that can view camera raw photos and help culling",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },

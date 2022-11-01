@@ -18,6 +18,7 @@ const FRAGMENT = `#version 300 es
     uniform mediump usampler2D image;
     uniform vec3 white_balance;
     uniform mat3 color_matrix;
+    uniform float gamma;
 
     in vec2 frag_pixel_pos;
     out vec4 output_color;
@@ -29,7 +30,7 @@ const FRAGMENT = `#version 300 es
         vec3 colored =  clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
 
         // exposure adjustment
-        vec3 gamma_corrected = pow(colored, vec3(0.45));
+        vec3 gamma_corrected = pow(colored, vec3(gamma));
         vec3 exposure_adjusted = min(gamma_corrected, vec3(1.0));
 
         output_color = vec4(exposure_adjusted, 1.0);
@@ -103,7 +104,7 @@ export function initWebgl(canvas) {
         antialias: false,
         depth: false,
         powerPreference: "high-performance",
-        preserveDrawingBuffer: false
+        preserveDrawingBuffer: true
     });
 
     const program = genProgram(gl, VERTEX, FRAGMENT);
@@ -133,6 +134,7 @@ export function initWebgl(canvas) {
         gl,
         uniform: {
             image: gl.getUniformLocation(program, "image"),
+            gamma: gl.getUniformLocation(program, "gamma"),
             white_balance: gl.getUniformLocation(program, "white_balance"),
             color_matrix: gl.getUniformLocation(program, "color_matrix")
         }
@@ -148,6 +150,7 @@ export function render(webgl_instance, img_data, width, height, white_balance, c
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, width, height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
 
+    gl.uniform1f(uniform.gamma, 1 / 2.22);
     gl.uniform3fv(uniform.white_balance, [].slice.call(white_balance));
     gl.uniformMatrix3fv(uniform.color_matrix, false, [].slice.call(color_matrix));
 
@@ -158,6 +161,33 @@ export function render(webgl_instance, img_data, width, height, white_balance, c
         readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(x => {
             pixels_callback(x)
         })
+    }
+}
+
+export function updateUniform(webgl_instance, uniform_fn, uniform_name, data, pixels_callback, timeout, lag) {
+    const { gl, uniform } = webgl_instance;
+
+    gl[uniform_fn](uniform[uniform_name], data);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    if (pixels_callback) {
+        const prog = () => {
+            const width = gl.canvas.width;
+            const height = gl.canvas.height;
+            const pixels = new Uint8Array(width * height * 4);
+            readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(x => {
+                pixels_callback(x)
+            })
+        };
+        if (timeout) {
+            clearTimeout(timeout);
+            return setTimeout(() => {
+                prog();
+            }, lag);
+        } else {
+            prog();
+        }
     }
 }
 
