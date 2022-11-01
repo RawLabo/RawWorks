@@ -28,12 +28,14 @@ export default {
       const canvas = this.$refs.canvas;
       const [p1, _] = this.scale_params;
 
-      this[p1] += e.deltaY;
+      const delta_y = -e.deltaY;
+
+      this[p1] += delta_y;
 
       const scales =
         p1 == "width"
-          ? [e.deltaY, e.deltaY / this.img_info.ratio]
-          : [e.deltaY * this.img_info.ratio, e.deltaY];
+          ? [delta_y, delta_y / this.img_info.ratio]
+          : [delta_y * this.img_info.ratio, delta_y];
       const zoom_point = [
         e.pageX - container.offsetLeft,
         e.pageY - container.offsetTop,
@@ -49,7 +51,6 @@ export default {
         (scales[1] * (zoom_point[1] - img_center_point[1])) /
         canvas.clientHeight;
 
-      this.tip.opacity = 1;
       this.checkCanvasTransform();
     },
     moveStart(e) {
@@ -93,7 +94,6 @@ export default {
       this.left_offset = 0;
       this.top_offset = 0;
       this.tip.scale = 0;
-      this.tip.opacity = 0;
     },
   },
   data() {
@@ -112,7 +112,6 @@ export default {
       transition: "",
       tip: {
         scale: 0,
-        opacity: 0,
       },
     };
   },
@@ -152,7 +151,7 @@ export default {
 
           disposeWasm();
 
-          this.$emit("histogram_load", histogram_data);
+          this.$emit("histogram_load", histogram_data, this.webgl_instance);
         }
       );
       window.timer.rendered = performance.now();
