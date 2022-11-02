@@ -1,8 +1,3 @@
-<script setup>
-defineProps(["img"]);
-defineEmits(["histogram_load"]);
-</script>
-
 <template>
   <div ref="container" class="container flex-center" @wheel="zoom" @mousedown="moveStart" @mousemove="move"
     @mouseup="moveEnd" @mouseleave="moveEnd">
@@ -22,6 +17,7 @@ import { quickraw, initWebgl, render, disposeWasm } from "../quickraw";
 let move_prev_pos = null;
 
 export default {
+  props: ['img'],
   methods: {
     zoom(e) {
       const container = this.$refs.container;

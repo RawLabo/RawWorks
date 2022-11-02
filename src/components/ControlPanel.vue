@@ -1,12 +1,3 @@
-<script setup>
-import { ref } from 'vue';
-
-defineProps(['webgl_instance']);
-defineEmits(['histogram_load']);
-
-const gamma = ref(2.22)
-</script>
-
 <template>
     <div class="container" v-if="webgl_instance">
         gamma {{ gamma }}
@@ -15,11 +6,18 @@ const gamma = ref(2.22)
 </template>
 
 <script>
-let timeout = 1
-const lag = 300
-
 import { updateUniform, quickraw } from "../quickraw";
+
+let timeout = 1;
+const lag = 300;
+
 export default {
+    props: ['webgl_instance'],
+    data() {
+        return {
+            gamma: 2.22
+        }
+    },
     watch: {
         gamma(v) {
             timeout = updateUniform(this.webgl_instance, 'uniform1f', 'gamma', 1 / v, pixels => {
@@ -33,7 +31,5 @@ export default {
 <style scoped>
 .container {
     margin-bottom: .5rem;
-    /* margin: .5rem 0; */
-    /* padding: .3rem 1rem .5rem; */
 }
 </style>
