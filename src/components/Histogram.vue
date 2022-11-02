@@ -37,7 +37,6 @@ export default {
                 [b, "#33f"],
             ].forEach(([hg, color]) => {
                 ctx.beginPath();
-
                 hg.forEach((v, i) => {
                     const h = height - (Math.log2(v) * height) / max;
                     const x = i * width / 256;
@@ -46,7 +45,6 @@ export default {
                 });
                 ctx.strokeStyle = color;
                 ctx.closePath();
-
                 ctx.stroke();
             });
 

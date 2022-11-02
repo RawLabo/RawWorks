@@ -21,7 +21,7 @@ const FRAGMENT = `#version 300 es
     uniform vec3 white_balance;
     uniform mat3 color_matrix;
     uniform float gamma;
-    uniform float exposure_offset;
+    uniform float exposure;
 
     in vec2 frag_pixel_pos;
     out vec4 output_color;
@@ -33,8 +33,8 @@ const FRAGMENT = `#version 300 es
         vec3 colored =  clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
 
         // exposure adjustment
-        vec3 gamma_corrected = pow(clamp(colored, 0.00001, 1.0), vec3(gamma)); // gamma do not want 0
-        vec3 exposure_adjusted = clamp(gamma_corrected + vec3(exposure_offset), vec3(0.0), vec3(1.0));
+        vec3 gamma_corrected = pow(max(colored, 0.0001), vec3(gamma)); // gamma 0 fix
+        vec3 exposure_adjusted = clamp(gamma_corrected * pow(2.0, exposure), vec3(0.0), vec3(1.0));
 
         output_color = vec4(exposure_adjusted, 1.0);
     }
@@ -137,7 +137,7 @@ export function initWebgl(canvas) {
         gl,
         uniform: {
             image: gl.getUniformLocation(program, "image"),
-            exposure_offset: gl.getUniformLocation(program, "exposure_offset"),
+            exposure: gl.getUniformLocation(program, "exposure"),
             gamma: gl.getUniformLocation(program, "gamma"),
             white_balance: gl.getUniformLocation(program, "white_balance"),
             color_matrix: gl.getUniformLocation(program, "color_matrix")
@@ -154,7 +154,7 @@ export function render(webgl_instance, img_data, width, height, white_balance, c
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, width, height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
 
-    gl.uniform1f(uniform.exposure_offset, 0);
+    gl.uniform1f(uniform.exposure, 0);
     gl.uniform1f(uniform.gamma, 1 / 2.22);
     gl.uniform3fv(uniform.white_balance, [].slice.call(white_balance));
     gl.uniformMatrix3fv(uniform.color_matrix, false, [].slice.call(color_matrix));
