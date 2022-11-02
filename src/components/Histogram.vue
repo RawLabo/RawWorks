@@ -1,8 +1,3 @@
-<script setup>
-defineEmits(["finish"]);
-defineProps(["histogram"]);
-</script>
-
 <template>
     <div>
         <canvas width="256" height="128" ref="canvas"></canvas>
@@ -11,6 +6,7 @@ defineProps(["histogram"]);
 
 <script>
 export default {
+    props: ['histogram'],
     watch: {
         histogram(histogram) {
             const r = histogram.slice(0, 256);
