@@ -1,7 +1,3 @@
-<script setup>
-defineProps(["timer"]);
-</script>
-
 <template>
     <div>
         <table v-if="timer.histogram_calced > timer.file_to_load">
@@ -28,6 +24,12 @@ defineProps(["timer"]);
         </table>
     </div>
 </template>
+
+<script>
+export default {
+    props: ['timer']
+}
+</script>
 
 <style scoped>
 .title {
