@@ -102,7 +102,12 @@ function initTexture(gl) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 }
 
-export function initWebgl(canvas) {
+export function initWebgl(canvas, width, height) {
+    if (width && height) {
+        canvas.width = width;
+        canvas.height = height;
+    }
+
     const gl = canvas.getContext(WEBGL, {
         antialias: false,
         depth: false,
