@@ -1,7 +1,7 @@
 <template>
   <div ref="container" class="container flex-center" @wheel="zoom" @mousedown="moveStart" @mousemove="move"
     @mouseup="moveEnd" @mouseleave="moveEnd">
-    <canvas ref="canvas" :style="{
+    <canvas :key="canvas_key" ref="canvas" :style="{
       width: width < 0 ? 'auto' : width + 'px',
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
@@ -94,6 +94,7 @@ export default {
   },
   data() {
     return {
+      canvas_key: 0,
       webgl_instance: null,
       img_info: {
         width: 0,
@@ -133,24 +134,37 @@ export default {
           : ["height", "clientHeight"];
       this.checkCanvasTransform();
 
-      render(
-        this.webgl_instance,
-        img_data,
-        width,
-        height,
-        white_balance,
-        color_matrix,
-        (pixels) => {
-          window.timer.pixels_read = performance.now();
-          const histogram_data = quickraw.calc_histogram(pixels);
-          window.timer.histogram_calced = performance.now();
-
-          disposeWasm();
-
-          this.$emit("histogram_load", histogram_data, this.webgl_instance);
+      const render_fn = () => {
+        if (this.canvas_key) {
+          this.webgl_instance = initWebgl(this.$refs.canvas, width, height);
         }
-      );
-      window.timer.rendered = performance.now();
+
+        render(
+          this.webgl_instance,
+          img_data,
+          width,
+          height,
+          white_balance,
+          color_matrix,
+          (pixels) => {
+            window.timer.pixels_read = performance.now();
+            const histogram_data = quickraw.calc_histogram(pixels);
+            window.timer.histogram_calced = performance.now();
+
+            disposeWasm();
+
+            this.$emit("histogram_load", histogram_data, this.webgl_instance);
+          }
+        );
+        window.timer.rendered = performance.now();
+      };
+
+      if (window.chrome) {
+        this.canvas_key += 1; // fix large photo rendering issue in chromium based browsers
+        this.$nextTick(render_fn);
+      } else {
+        render_fn();
+      }
     },
   },
   mounted() {

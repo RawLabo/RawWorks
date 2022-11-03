@@ -14,7 +14,7 @@ import ControlPanel from './components/ControlPanel.vue'
             <photo-frame :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
             <div class="side-panel">
                 <histogram :histogram="histogram_data" />
-                <control-panel :webgl_instance="webgl_instance" @histogram_load="hd => histogram_data = hd" />
+                <control-panel :timer="timer" :webgl_instance="webgl_instance" @histogram_load="hd => histogram_data = hd" />
                 <perf-timer :timer="timer" />
             </div>
             <photo-list class="photo-list" @raw_decoded="i => img = i" />
