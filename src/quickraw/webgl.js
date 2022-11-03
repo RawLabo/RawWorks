@@ -33,7 +33,7 @@ const FRAGMENT = `#version 300 es
         vec3 colored =  clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
 
         // exposure adjustment
-        vec3 gamma_corrected = pow(max(colored, 0.0001), vec3(gamma)); // gamma 0 fix
+        vec3 gamma_corrected = pow(max(colored, 0.00001), vec3(gamma)); // gamma 0 fix
         vec3 exposure_adjusted = clamp(gamma_corrected * pow(2.0, exposure), vec3(0.0), vec3(1.0));
 
         output_color = vec4(exposure_adjusted, 1.0);
