@@ -11,7 +11,7 @@
 import { updateUniform, quickraw, disposeWasm } from "../quickraw";
 
 let timeout = 1;
-const lag = 300;
+const lag = 250;
 
 export default {
     props: ['webgl_instance', 'timer'],
