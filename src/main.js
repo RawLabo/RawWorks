@@ -2,15 +2,11 @@ import { createApp } from 'vue'
 import './global.css'
 import App from './App.vue'
 
-import { NButton, NSlider, NConfigProvider, NUpload, NUploadDragger } from 'naive-ui';
-
 const app = createApp(App);
 
-app
-    .component('NUpload', NUpload)
-    .component('NSlider', NSlider)
-    .component('NUploadDragger', NUploadDragger)
-    .component('NConfigProvider', NConfigProvider)
-    .component('NButton', NButton);
+import { OSlider, OUpload } from '@oruga-ui/oruga-next';
+import '@oruga-ui/oruga-next/dist/oruga-full.css';
+
+app.component('OSlider', OSlider).component('OUpload', OUpload);
 
 app.mount('#app');

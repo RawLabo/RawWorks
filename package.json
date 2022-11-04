@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "naive-ui": "^2.33.5",
+    "@oruga-ui/oruga-next": "^0.5.8",
     "vue": "^3.2.41"
   },
   "devDependencies": {

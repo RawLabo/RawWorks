@@ -1,9 +1,9 @@
 <template>
     <div class="container" v-if="webgl_instance">
         gamma {{ gamma }}
-        <n-slider v-model:value="gamma" :step="0.01" :min="0" :max="10" :tooltip="false" />
+        <o-slider v-model="gamma" :step="0.01" :min="0" :max="10" :tooltip="false" />
         exposure {{ exposure }}
-        <n-slider v-model:value="exposure" :step="0.01" :min="-3" :max="3" :tooltip="false" />
+        <o-slider v-model="exposure" :step="0.01" :min="-3" :max="3" :tooltip="false" />
     </div>
 </template>
 
