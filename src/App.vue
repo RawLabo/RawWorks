@@ -1,6 +1,4 @@
 <script setup>
-import { darkTheme } from 'naive-ui'
-
 import Histogram from './components/Histogram.vue'
 import PhotoFrame from './components/PhotoFrame.vue'
 import PhotoList from './components/PhotoList.vue'
@@ -9,17 +7,16 @@ import ControlPanel from './components/ControlPanel.vue'
 </script>
 
 <template>
-    <n-config-provider :theme="darkTheme">
-        <div class="frame">
-            <photo-frame :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
-            <div class="side-panel">
-                <histogram :histogram="histogram_data" />
-                <control-panel :timer="timer" :webgl_instance="webgl_instance" @histogram_load="hd => histogram_data = hd" />
-                <perf-timer :timer="timer" />
-            </div>
-            <photo-list class="photo-list" @raw_decoded="i => img = i" />
+    <div class="frame">
+        <photo-frame :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
+        <div class="side-panel">
+            <histogram :histogram="histogram_data" />
+            <control-panel :timer="timer" :webgl_instance="webgl_instance"
+                @histogram_load="hd => histogram_data = hd" />
+            <perf-timer :timer="timer" />
         </div>
-    </n-config-provider>
+        <photo-list class="photo-list" @raw_decoded="i => img = i" />
+    </div>
 </template>
 
 <script>

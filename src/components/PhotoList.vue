@@ -1,8 +1,8 @@
 <template>
     <div class="flex">
-        <n-upload class="flex" :show-file-list="false" directory-dnd @change="fileSelected">
-            <n-upload-dragger class="flex-center">Click or drag a raw photo to this area</n-upload-dragger>
-        </n-upload>
+        <o-upload v-model="file" drag-drop>
+            Drop your file here or click to choose
+        </o-upload>
     </div>
 </template>
 
@@ -10,8 +10,13 @@
 import { quickraw } from "../quickraw";
 
 export default {
-    methods: {
-        fileSelected(info) {
+    data() {
+        return {
+            file: []
+        }
+    },
+    watch: {
+        file(file) {
             window.timer.file_to_load = performance.now();
 
             const reader = new FileReader();
@@ -24,15 +29,12 @@ export default {
 
                 this.$emit("raw_decoded", img);
             };
-            reader.readAsArrayBuffer(info.file.file);
+            reader.readAsArrayBuffer(file);
         }
-    }
+    },
 }
 </script>
 
 <style scoped>
-.n-upload-dragger {
-    width: 150px;
-    height: 100%;
-}
+.o-upl {width: 128px;}
 </style>

@@ -15,10 +15,10 @@
     user-select: none;
 }
 
+html { font-size: 14px; }
 html,
 body,
-#app,
-.n-config-provider {
+#app {
     height: 100%
 }
 
@@ -43,4 +43,13 @@ body {
 
 .flex {
     display: flex;
+}
+
+.o-upl__draggable {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    text-align: center;
+    padding: .5rem;
 }
