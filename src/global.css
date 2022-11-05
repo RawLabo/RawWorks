@@ -53,3 +53,8 @@ body {
     text-align: center;
     padding: .5rem;
 }
+
+.o-chk--transparent .o-chk__check {
+    background-color: #333;
+    border: 0;
+}

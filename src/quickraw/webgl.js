@@ -22,6 +22,11 @@ const FRAGMENT = `#version 300 es
     uniform mat3 color_matrix;
     uniform float gamma;
     uniform float exposure;
+    uniform float white_point;
+    uniform float black_point;
+    uniform float highlight_point;
+    uniform float shadow_point;
+    uniform float highlight_threshold;
 
     in vec2 frag_pixel_pos;
     out vec4 output_color;
@@ -32,11 +37,18 @@ const FRAGMENT = `#version 300 es
         // color convert
         vec3 colored =  clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
 
-        // exposure adjustment
-        vec3 gamma_corrected = pow(max(colored, 0.00001), vec3(gamma)); // gamma 0 fix
-        vec3 exposure_adjusted = clamp(gamma_corrected * pow(2.0, exposure), vec3(0.0), vec3(1.0));
+        vec3 highlight_th = vec3(highlight_threshold);
+        vec3 shadow_th = vec3(1.0) - highlight_th;
 
-        output_color = vec4(exposure_adjusted, 1.0);
+        // color adjustment
+        vec3 gamma_v = pow(max(colored, 0.00001), vec3(gamma)); // gamma 0 fix
+        vec3 exposure_v = clamp(gamma_v * pow(2.0, exposure), vec3(0.0), vec3(1.0));
+        vec3 white_point_v = exposure_v + white_point * exposure_v;
+        vec3 black_point_v = white_point_v+ black_point * (vec3(1.0) - white_point_v);
+        vec3 highlight_v = black_point_v + highlight_point * (highlight_th - abs(black_point_v - highlight_th));
+        vec3 shadow_v = highlight_v + shadow_point * (highlight_th - abs(highlight_v - shadow_th));
+
+        output_color = vec4(shadow_v, 1.0);
     }
 `;
 
@@ -143,6 +155,11 @@ export function initWebgl(canvas, width, height) {
         uniform: {
             image: gl.getUniformLocation(program, "image"),
             exposure: gl.getUniformLocation(program, "exposure"),
+            white_point: gl.getUniformLocation(program, "white_point"),
+            black_point: gl.getUniformLocation(program, "black_point"),
+            highlight_point: gl.getUniformLocation(program, "highlight_point"),
+            shadow_point: gl.getUniformLocation(program, "shadow_point"),
+            highlight_threshold: gl.getUniformLocation(program, "highlight_threshold"),
             gamma: gl.getUniformLocation(program, "gamma"),
             white_balance: gl.getUniformLocation(program, "white_balance"),
             color_matrix: gl.getUniformLocation(program, "color_matrix")
@@ -159,6 +176,11 @@ export function render(webgl_instance, img_data, width, height, white_balance, c
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, width, height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
 
+    gl.uniform1f(uniform.black_point, 0);
+    gl.uniform1f(uniform.white_point, 0);
+    gl.uniform1f(uniform.highlight_point, 0);
+    gl.uniform1f(uniform.shadow_point, 0);
+    gl.uniform1f(uniform.highlight_threshold, 0.75);
     gl.uniform1f(uniform.exposure, 0);
     gl.uniform1f(uniform.gamma, 1 / 2.22);
     gl.uniform3fv(uniform.white_balance, [].slice.call(white_balance));
