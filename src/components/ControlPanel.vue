@@ -1,19 +1,27 @@
 <template>
     <div class="container" v-if="webgl_instance">
-        gamma {{ gamma }}
-        <o-slider v-model="gamma" :step="0.01" :min="0" :max="10" :tooltip="false" @dblclick="gamma = 2.22" />
-        exposure {{ exposure }}
-        <o-slider v-model="exposure" :step="0.01" :min="-3" :max="3" :tooltip="false" @dblclick="exposure = 0" />
-        white point {{ white_point }}
-        <o-slider v-model="white_point" :step="0.01" :min="-1" :max="1.5" :tooltip="false" @dblclick="white_point = 0"  />
-        black point {{ black_point }}
-        <o-slider v-model="black_point" :step="0.01" :min="-1" :max="1" :tooltip="false" @dblclick="black_point = 0"  />
-        highlight {{ highlight_point }}
-        <o-slider v-model="highlight_point" :step="0.01" :min="-1" :max="1" :tooltip="false" @dblclick="highlight_point = 0"  />
-        shadow {{ shadow_point }}
-        <o-slider v-model="shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false" @dblclick="shadow_point = 0"  />
-        highlight threshold {{ highlight_threshold }}
-        <o-slider v-model="highlight_threshold" :step="0.01" :min="0" :max="1" :tooltip="false" @dblclick="highlight_threshold = 0.75"  />
+        gamma {{ shader.gamma }}
+        <o-slider v-model="shader.gamma" :step="0.01" :min="0" :max="10" :tooltip="false"
+            @dblclick="shader.gamma = 2.22" />
+        exposure {{ shader.exposure }}
+        <o-slider v-model="shader.exposure" :step="0.01" :min="-3" :max="3" :tooltip="false"
+            @dblclick="shader.exposure = 0" />
+        white point {{ shader.white_point }}
+        <o-slider v-model="shader.white_point" :step="0.01" :min="-1" :max="1.5" :tooltip="false"
+            @dblclick="shader.white_point = 0" />
+        black point {{ shader.black_point }}
+        <o-slider v-model="shader.black_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.black_point = 0" />
+        highlight {{ shader.highlight_point }}
+        <o-slider v-model="shader.highlight_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.highlight_point = 0" />
+        shadow {{ shader.shadow_point }}
+        <o-slider v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.shadow_point = 0" />
+        highlight threshold {{ shader.highlight_threshold }}
+        <o-slider v-model="shader.highlight_threshold" :step="0.01" :min="0" :max="1" :tooltip="false"
+            @dblclick="shader.highlight_threshold = 0.75" />
+        <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
     </div>
 </template>
 
@@ -27,60 +35,68 @@ export default {
     props: ['webgl_instance', 'timer'],
     data() {
         return {
-            is_reset: false,
-            gamma: 2.22,
-            exposure: 0,
-            white_point: 0,
-            black_point: 0,
-            highlight_point: 0,
-            shadow_point: 0,
-            highlight_threshold: 0.75
+            prevent_shader_upadte: false,
+            show_origin: false,
+            mem: null,
+            shader: {
+                gamma: 2.22,
+                exposure: 0,
+                white_point: 0,
+                black_point: 0,
+                highlight_point: 0,
+                shadow_point: 0,
+                highlight_threshold: 0.75
+            },
         }
     },
     methods: {
         setShader(name, value) {
-            if (this.is_reset) return;
+            if (this.prevent_shader_upadte) return;
 
             timeout = updateUniform(this.webgl_instance, 'uniform1f', name, value, pixels => {
                 const histogram_data = quickraw.calc_histogram(pixels);
                 disposeWasm();
                 this.$emit("histogram_load", histogram_data);
             }, timeout, lag);
-        }
+        },
     },
     watch: {
+        show_origin(v) {
+            if (v) {
+                this.mem = {};
+                Object.assign(this.mem, this.shader);
+                Object.assign(this.shader, this.$options.data().shader);
+            } else {
+                Object.assign(this.shader, this.mem);
+                this.mem = null;
+            }
+        },
         'timer.histogram_calced'() {
-            this.is_reset = true;
-            this.gamma = 2.22;
-            this.exposure = 0;
-            this.white_point = 0;
-            this.black_point = 0;
-            this.highlight_point = 0;
-            this.shadow_point = 0;
-            this.highlight_threshold = 0.75;
+            this.prevent_shader_upadte = true;
+            Object.assign(this.shader, this.$options.data().shader);
             this.$nextTick(() => {
-                this.is_reset = false;
+                this.prevent_shader_upadte = false;
             });
         },
-        exposure(v) {
+        'shader.exposure'(v) {
             this.setShader('exposure', v);
         },
-        gamma(v) {
-            this.setShader('gamma', 1/ v);
+        'shader.gamma'(v) {
+            this.setShader('gamma', 1 / v);
         },
-        white_point(v) {
+        'shader.white_point'(v) {
             this.setShader('white_point', v);
         },
-        black_point(v) {
+        'shader.black_point'(v) {
             this.setShader('black_point', v);
         },
-        highlight_point(v) {
+        'shader.highlight_point'(v) {
             this.setShader('highlight_point', v);
         },
-        shadow_point(v) {
+        'shader.shadow_point'(v) {
             this.setShader('shadow_point', v);
         },
-        highlight_threshold(v) {
+        'shader.highlight_threshold'(v) {
             this.setShader('highlight_threshold', v);
         },
     }
@@ -90,6 +106,7 @@ export default {
 .container {
     margin-bottom: .5rem;
 }
+
 .o-slide {
     margin: 0.5rem 0;
 }
