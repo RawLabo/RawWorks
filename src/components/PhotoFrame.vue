@@ -1,6 +1,6 @@
 <template>
   <div ref="container" class="container flex-center" @wheel="zoom" @mousedown="moveStart" @mousemove="move"
-    @mouseup="moveEnd" @mouseleave="moveEnd">
+    @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom100">
     <canvas :key="canvas_key" ref="canvas" :style="{
       width: width < 0 ? 'auto' : width + 'px',
       height: height < 0 ? 'auto' : height + 'px',
@@ -19,12 +19,15 @@ let move_prev_pos = null;
 export default {
   props: ['img'],
   methods: {
-    zoom(e) {
+    zoom100(e) {
+      this.zoom(e, true);
+    },
+    zoom(e, toggle_100) {
       const container = this.$refs.container;
       const canvas = this.$refs.canvas;
-      const [p1, _] = this.scale_params;
+      const [p1, p2] = this.scale_params;
 
-      const delta_y = -e.deltaY;
+      const delta_y = toggle_100 ? (this[p1] == this.img_info[p1] ? container[p2] - this[p1] : this.img_info[p1] - this[p1])  : -e.deltaY;
 
       this[p1] += delta_y;
 

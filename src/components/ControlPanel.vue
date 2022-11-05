@@ -90,4 +90,7 @@ export default {
 .container {
     margin-bottom: .5rem;
 }
+.o-slide {
+    margin: 0.5rem 0;
+}
 </style>
