@@ -1,19 +1,19 @@
 <template>
     <div class="container" v-if="webgl_instance">
         gamma {{ gamma }}
-        <o-slider v-model="gamma" :step="0.01" :min="0" :max="10" :tooltip="false" />
+        <o-slider v-model="gamma" :step="0.01" :min="0" :max="10" :tooltip="false" @dblclick="gamma = 2.22" />
         exposure {{ exposure }}
-        <o-slider v-model="exposure" :step="0.01" :min="-3" :max="3" :tooltip="false" />
+        <o-slider v-model="exposure" :step="0.01" :min="-3" :max="3" :tooltip="false" @dblclick="exposure = 0" />
         white point {{ white_point }}
-        <o-slider v-model="white_point" :step="0.01" :min="-1" :max="1.5" :tooltip="false" />
+        <o-slider v-model="white_point" :step="0.01" :min="-1" :max="1.5" :tooltip="false" @dblclick="white_point = 0"  />
         black point {{ black_point }}
-        <o-slider v-model="black_point" :step="0.01" :min="-1" :max="1" :tooltip="false" />
+        <o-slider v-model="black_point" :step="0.01" :min="-1" :max="1" :tooltip="false" @dblclick="black_point = 0"  />
         highlight {{ highlight_point }}
-        <o-slider v-model="highlight_point" :step="0.01" :min="-1" :max="1" :tooltip="false" />
+        <o-slider v-model="highlight_point" :step="0.01" :min="-1" :max="1" :tooltip="false" @dblclick="highlight_point = 0"  />
         shadow {{ shadow_point }}
-        <o-slider v-model="shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false" />
+        <o-slider v-model="shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false" @dblclick="shadow_point = 0"  />
         highlight threshold {{ highlight_threshold }}
-        <o-slider v-model="highlight_threshold" :step="0.01" :min="0" :max="1" :tooltip="false" />
+        <o-slider v-model="highlight_threshold" :step="0.01" :min="0" :max="1" :tooltip="false" @dblclick="highlight_threshold = 0.75"  />
     </div>
 </template>
 
