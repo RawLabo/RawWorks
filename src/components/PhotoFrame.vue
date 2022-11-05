@@ -27,7 +27,14 @@ export default {
       const canvas = this.$refs.canvas;
       const [p1, p2] = this.scale_params;
 
-      const delta_y = toggle_100 ? (this[p1] == this.img_info[p1] ? container[p2] - this[p1] : this.img_info[p1] - this[p1])  : -e.deltaY;
+      if (toggle_100 && this[p1] == this.img_info[p1]) {
+        this[p1] = container[p2];
+        this.left_offset = 0;
+        this.top_offset = 0;
+        return;
+      }
+
+      const delta_y = toggle_100 ? this.img_info[p1] - this[p1] : -e.deltaY;
 
       this[p1] += delta_y;
 
