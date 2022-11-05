@@ -43,10 +43,12 @@ const FRAGMENT = `#version 300 es
         // color adjustment
         vec3 gamma_v = pow(max(colored, 0.00001), vec3(gamma)); // gamma 0 fix
         vec3 exposure_v = clamp(gamma_v * pow(2.0, exposure), vec3(0.0), vec3(1.0));
+
         vec3 white_point_v = exposure_v + white_point * exposure_v;
-        vec3 black_point_v = white_point_v+ black_point * (vec3(1.0) - white_point_v);
-        vec3 highlight_v = black_point_v + highlight_point * (highlight_th - abs(black_point_v - highlight_th));
-        vec3 shadow_v = highlight_v + shadow_point * (highlight_th - abs(highlight_v - shadow_th));
+        vec3 highlight_v = white_point_v + highlight_point * (highlight_th - abs(white_point_v - highlight_th));
+
+        vec3 black_point_v = highlight_v+ black_point * (vec3(1.0) - highlight_v);
+        vec3 shadow_v = black_point_v + shadow_point * (highlight_th - abs(black_point_v - shadow_th));
 
         output_color = vec4(shadow_v, 1.0);
     }

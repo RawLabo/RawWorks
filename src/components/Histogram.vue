@@ -49,5 +49,8 @@ export default {
 </script>
 
 <style scoped>
-
+canvas {
+    border-left: 1px dashed #444;
+    border-right: 1px dashed #444;
+}
 </style>

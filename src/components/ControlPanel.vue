@@ -1,26 +1,39 @@
 <template>
     <div class="container" v-if="webgl_instance">
+        white balance {{ shader.white_balance_r.toFixed(3) }} | {{ shader.white_balance_b.toFixed(3) }}
+        <o-slider :disabled="show_origin" v-model="shader.white_balance_r" :step="0.001" :min="0" :max="5"
+            :tooltip="false" @dblclick="shader.white_balance_r = white_balance[0]" />
+        <o-slider :disabled="show_origin" v-model="shader.white_balance_b" :step="0.001" :min="0" :max="5"
+            :tooltip="false" @dblclick="shader.white_balance_b = white_balance[2]" />
+
         gamma {{ shader.gamma }}
-        <o-slider v-model="shader.gamma" :step="0.01" :min="0" :max="10" :tooltip="false"
+        <o-slider :disabled="show_origin" v-model="shader.gamma" :step="0.01" :min="0" :max="10" :tooltip="false"
             @dblclick="shader.gamma = 2.22" />
+
         exposure {{ shader.exposure }}
-        <o-slider v-model="shader.exposure" :step="0.01" :min="-3" :max="3" :tooltip="false"
+        <o-slider :disabled="show_origin" v-model="shader.exposure" :step="0.01" :min="-3" :max="3" :tooltip="false"
             @dblclick="shader.exposure = 0" />
-        white point {{ shader.white_point }}
-        <o-slider v-model="shader.white_point" :step="0.01" :min="-1" :max="1.5" :tooltip="false"
-            @dblclick="shader.white_point = 0" />
-        black point {{ shader.black_point }}
-        <o-slider v-model="shader.black_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
-            @dblclick="shader.black_point = 0" />
+
         highlight {{ shader.highlight_point }}
-        <o-slider v-model="shader.highlight_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
-            @dblclick="shader.highlight_point = 0" />
+        <o-slider :disabled="show_origin" v-model="shader.highlight_point" :step="0.01" :min="-1" :max="1"
+            :tooltip="false" @dblclick="shader.highlight_point = 0" />
+
+        white point {{ shader.white_point }}
+        <o-slider :disabled="show_origin" v-model="shader.white_point" :step="0.01" :min="-1" :max="2" :tooltip="false"
+            @dblclick="shader.white_point = 0" />
+
         shadow {{ shader.shadow_point }}
-        <o-slider v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
+        <o-slider :disabled="show_origin" v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.shadow_point = 0" />
+
+        black point {{ shader.black_point }}
+        <o-slider :disabled="show_origin" v-model="shader.black_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.black_point = 0" />
+
         highlight threshold {{ shader.highlight_threshold }}
-        <o-slider v-model="shader.highlight_threshold" :step="0.01" :min="0" :max="1" :tooltip="false"
-            @dblclick="shader.highlight_threshold = 0.75" />
+        <o-slider :disabled="show_origin" v-model="shader.highlight_threshold" :step="0.01" :min="0" :max="1"
+            :tooltip="false" @dblclick="shader.highlight_threshold = 0.75" />
+
         <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
     </div>
 </template>
@@ -32,10 +45,10 @@ let timeout = 1;
 const lag = 250;
 
 export default {
-    props: ['webgl_instance', 'timer'],
+    props: ['webgl_instance', 'timer', 'white_balance'],
     data() {
         return {
-            prevent_shader_upadte: false,
+            prevent_shader_update: false,
             show_origin: false,
             mem: null,
             shader: {
@@ -45,38 +58,59 @@ export default {
                 black_point: 0,
                 highlight_point: 0,
                 shadow_point: 0,
-                highlight_threshold: 0.75
+                highlight_threshold: 0.75,
+                white_balance_r: 1,
+                white_balance_b: 1
             },
         }
     },
+    mounted() {
+        console.log(2222)
+    },
     methods: {
-        setShader(name, value) {
-            if (this.prevent_shader_upadte) return;
+        setShader(name, value, method) {
+            if (this.prevent_shader_update) return;
 
-            timeout = updateUniform(this.webgl_instance, 'uniform1f', name, value, pixels => {
+            timeout = updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
                 const histogram_data = quickraw.calc_histogram(pixels);
                 disposeWasm();
                 this.$emit("histogram_load", histogram_data);
             }, timeout, lag);
         },
+        resetShader(prevent_shader_update) {
+            this.prevent_shader_update = !!prevent_shader_update;
+
+            Object.assign(this.shader, this.$options.data().shader);
+            this.shader.white_balance_r = this.white_balance[0];
+            this.shader.white_balance_b = this.white_balance[2];
+
+            if (prevent_shader_update) {
+                this.$nextTick(() => {
+                    this.prevent_shader_update = false;
+                });
+            }
+        }
     },
     watch: {
         show_origin(v) {
             if (v) {
                 this.mem = {};
                 Object.assign(this.mem, this.shader);
-                Object.assign(this.shader, this.$options.data().shader);
+                this.resetShader();
             } else {
                 Object.assign(this.shader, this.mem);
                 this.mem = null;
             }
         },
         'timer.histogram_calced'() {
-            this.prevent_shader_upadte = true;
-            Object.assign(this.shader, this.$options.data().shader);
-            this.$nextTick(() => {
-                this.prevent_shader_upadte = false;
-            });
+            // this is the actual init after each new image loaded
+            this.resetShader(true);
+        },
+        'shader.white_balance_r'(v) {
+            this.setShader('white_balance', [v, 1.0, this.shader.white_balance_b], 'uniform3fv');
+        },
+        'shader.white_balance_b'(v) {
+            this.setShader('white_balance', [this.shader.white_balance_r, 1.0, v], 'uniform3fv');
         },
         'shader.exposure'(v) {
             this.setShader('exposure', v);
