@@ -11,7 +11,7 @@ import ControlPanel from './components/ControlPanel.vue'
         <photo-frame :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
-            <control-panel :timer="timer" :webgl_instance="webgl_instance"
+            <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
                 @histogram_load="hd => histogram_data = hd" />
             <perf-timer :timer="timer" />
         </div>
@@ -24,6 +24,7 @@ export default {
     data() {
         return {
             img: null,
+            white_balance: [],
             histogram_data: null,
             webgl_instance: null,
             timer: {
@@ -34,6 +35,11 @@ export default {
                 pixels_read: 0,
                 histogram_calced: 0,
             }
+        }
+    },
+    watch: {
+        img(v) {
+            this.white_balance = [].slice.call(v.wb);
         }
     },
     mounted() {
