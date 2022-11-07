@@ -27,7 +27,7 @@ export default {
 
                 window.timer.raw_decoded = performance.now();
 
-                this.$emit("raw_decoded", img);
+                this.$emit("raw_decoded", img, file.name);
             };
             reader.readAsArrayBuffer(file);
         }
@@ -36,5 +36,5 @@ export default {
 </script>
 
 <style scoped>
-.o-upl {width: 128px;}
+.o-upl {width: 100%; height: 48px}
 </style>

@@ -1,8 +1,7 @@
 <template>
   <div ref="container" class="container flex-center" @wheel="zoom" @mousedown="moveStart" @mousemove="move"
     @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom100">
-    <canvas :key="canvas_key" ref="canvas" :style="{
-      width: width < 0 ? 'auto' : width + 'px',
+    <canvas :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
       transition,
@@ -17,8 +16,13 @@ import { quickraw, initWebgl, render, disposeWasm } from "../quickraw";
 let move_prev_pos = null;
 
 export default {
-  props: ['img'],
+  props: ['img', 'filename'],
   methods: {
+    updateHeightAlso(p1) {
+      if (p1 == 'width') {
+        this.height = this[p1] / this.img_info.ratio;
+      }
+    },
     zoom100(e) {
       this.zoom(e, true);
     },
@@ -27,8 +31,10 @@ export default {
       const canvas = this.$refs.canvas;
       const [p1, p2] = this.scale_params;
 
+      // double click toggle from fit to 100%
       if (toggle_100 && this[p1] == this.img_info[p1]) {
         this[p1] = container[p2];
+        this.updateHeightAlso(p1);
         this.left_offset = 0;
         this.top_offset = 0;
         return;
@@ -37,7 +43,9 @@ export default {
       const delta_y = toggle_100 ? this.img_info[p1] - this[p1] : -e.deltaY;
 
       this[p1] += delta_y;
+      this.updateHeightAlso(p1);
 
+      // prepare points
       const scales =
         p1 == "width"
           ? [delta_y, delta_y / this.img_info.ratio]
@@ -50,6 +58,8 @@ export default {
         container.clientWidth / 2 + this.left_offset,
         container.clientHeight / 2 + this.top_offset,
       ];
+
+      // calc new offsets
       this.left_offset -=
         (scales[0] * (zoom_point[0] - img_center_point[0])) /
         canvas.clientWidth;
@@ -80,9 +90,11 @@ export default {
       const container = this.$refs.container;
       const [p1, p2] = this.scale_params;
 
-      // size limit
+      // fit size limit
       if (this[p1] <= container[p2]) {
         this[p1] = container[p2];
+        this.updateHeightAlso(p1);
+
         this.left_offset = 0;
         this.top_offset = 0;
         this.transition = "transform 0.3s";
@@ -129,8 +141,10 @@ export default {
 
       this.resetCanvasTransform();
 
-      const width = img.width;
-      const height = img.height;
+      const rotation = img.rotation;
+      const width = rotation % 180 ? img.height : img.width;
+      const height = rotation % 180 ? img.width : img.height;
+
       const white_balance = img.wb;
       const color_matrix = img.color_matrix;
       const img_data = img.data;
@@ -152,8 +166,8 @@ export default {
         render(
           this.webgl_instance,
           img_data,
-          width,
-          height,
+          [width, height],
+          rotation,
           white_balance,
           color_matrix,
           (pixels) => {

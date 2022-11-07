@@ -34,7 +34,11 @@
         <o-slider :disabled="show_origin" v-model="shader.highlight_threshold" :step="0.01" :min="0" :max="1"
             :tooltip="false" @dblclick="shader.highlight_threshold = 0.75" />
 
-        <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
+        <div class="flex">
+            <o-button :disabled="generating_exports" outlined @click="exportImg">↓ Export</o-button>
+            <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
+        </div>
+
     </div>
 </template>
 
@@ -50,6 +54,7 @@ export default {
         return {
             prevent_shader_update: false,
             show_origin: false,
+            generating_exports: false,
             mem: null,
             shader: {
                 gamma: 2.22,
@@ -64,10 +69,26 @@ export default {
             },
         }
     },
-    mounted() {
-        console.log(2222)
-    },
     methods: {
+        exportImg() {
+            if (this.generating_exports) return;
+
+            this.generating_exports = true;
+
+            setTimeout(() => {
+                const selected_canvas = document.querySelectorAll('canvas.selected');
+                [].slice.call(selected_canvas).forEach(canvas => {
+                    const filename = canvas.getAttribute('data-filename');
+                    const link = document.createElement('a');
+                    link.download = filename + '.jpg';
+                    link.href = canvas.toDataURL('image/jpeg', 0.98);
+                    link.click();
+                });
+                setTimeout(() => {
+                    this.generating_exports = false;
+                }, 500);
+            }, 50);
+        },
         setShader(name, value, method) {
             if (this.prevent_shader_update) return;
 
@@ -142,6 +163,15 @@ export default {
 }
 
 .o-slide {
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
+}
+
+.flex {
+    justify-content: space-between;
+    align-items: center;
+}
+
+a.disabled {
+    color: #444;
 }
 </style>
