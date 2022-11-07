@@ -64,9 +64,6 @@ export default {
             },
         }
     },
-    mounted() {
-        console.log(2222)
-    },
     methods: {
         setShader(name, value, method) {
             if (this.prevent_shader_update) return;
