@@ -4,10 +4,18 @@ const VERTEX = `#version 300 es
     in vec2 corner_pos;
     in vec2 pixel_pos;
 
+    uniform float degree;
+
     out vec2 frag_pixel_pos;
 
     void main() {
-        gl_Position = vec4(corner_pos, 0, 1);
+        float x = corner_pos.x;
+        float y = corner_pos.y;
+
+        float angle = -degree * 3.14159265358 / 180.0;
+        vec2 pos = vec2(cos(angle) * x - sin(angle) * y, sin(angle) * x + cos(angle) * y);
+        
+        gl_Position = vec4(pos, 0, 1);
         frag_pixel_pos = vec2(pixel_pos.x, 1.0 - pixel_pos.y);
     }
 `;
@@ -156,6 +164,7 @@ export function initWebgl(canvas, width, height) {
         gl,
         uniform: {
             image: gl.getUniformLocation(program, "image"),
+            degree: gl.getUniformLocation(program, "degree"),
             exposure: gl.getUniformLocation(program, "exposure"),
             white_point: gl.getUniformLocation(program, "white_point"),
             black_point: gl.getUniformLocation(program, "black_point"),
@@ -169,15 +178,18 @@ export function initWebgl(canvas, width, height) {
     }
 }
 
-export function render(webgl_instance, img_data, width, height, white_balance, color_matrix, pixels_callback) {
+export function render(webgl_instance, img_data, size, rotation, white_balance, color_matrix, pixels_callback) {
     const { gl, uniform } = webgl_instance;
+    const [width, height] = size;
+
     gl.canvas.width = width;
     gl.canvas.height = height;
 
     gl.viewport(0, 0, width, height);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, width, height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, rotation % 180 ? height : width, rotation % 180 ? width : height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
 
+    gl.uniform1f(uniform.degree, rotation);
     gl.uniform1f(uniform.black_point, 0);
     gl.uniform1f(uniform.white_point, 0);
     gl.uniform1f(uniform.highlight_point, 0);

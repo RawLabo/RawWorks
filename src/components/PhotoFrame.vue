@@ -129,8 +129,11 @@ export default {
 
       this.resetCanvasTransform();
 
-      const width = img.width;
-      const height = img.height;
+      const rotation = img.rotation;
+      const width = rotation % 180 ? img.height : img.width;
+      const height = rotation % 180 ? img.width : img.height;
+      console.log(img.rotation);
+      
       const white_balance = img.wb;
       const color_matrix = img.color_matrix;
       const img_data = img.data;
@@ -152,8 +155,8 @@ export default {
         render(
           this.webgl_instance,
           img_data,
-          width,
-          height,
+          [width, height],
+          rotation,
           white_balance,
           color_matrix,
           (pixels) => {

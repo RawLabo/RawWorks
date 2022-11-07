@@ -153,6 +153,19 @@ export class Image {
         wasm.__wbg_set_image_height(this.ptr, arg0);
     }
     /**
+    * @returns {number}
+    */
+    get rotation() {
+        const ret = wasm.__wbg_get_image_rotation(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set rotation(arg0) {
+        wasm.__wbg_set_image_rotation(this.ptr, arg0);
+    }
+    /**
     * @returns {Uint16Array}
     */
     get data() {
