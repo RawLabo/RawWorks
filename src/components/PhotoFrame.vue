@@ -1,7 +1,7 @@
 <template>
   <div ref="container" class="container flex-center" @wheel="zoom" @mousedown="moveStart" @mousemove="move"
     @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom100">
-    <canvas :key="canvas_key" ref="canvas" :style="{
+    <canvas :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       width: width < 0 ? 'auto' : width + 'px',
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
@@ -17,7 +17,7 @@ import { quickraw, initWebgl, render, disposeWasm } from "../quickraw";
 let move_prev_pos = null;
 
 export default {
-  props: ['img'],
+  props: ['img', 'filename'],
   methods: {
     zoom100(e) {
       this.zoom(e, true);
@@ -132,7 +132,6 @@ export default {
       const rotation = img.rotation;
       const width = rotation % 180 ? img.height : img.width;
       const height = rotation % 180 ? img.width : img.height;
-      console.log(img.rotation);
       
       const white_balance = img.wb;
       const color_matrix = img.color_matrix;

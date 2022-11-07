@@ -27,7 +27,7 @@ export default {
 
                 window.timer.raw_decoded = performance.now();
 
-                this.$emit("raw_decoded", img);
+                this.$emit("raw_decoded", img, file.name);
             };
             reader.readAsArrayBuffer(file);
         }

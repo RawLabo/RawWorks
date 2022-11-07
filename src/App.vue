@@ -8,9 +8,9 @@ import ControlPanel from './components/ControlPanel.vue'
 
 <template>
     <div class="frame">
-        <photo-frame :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
+        <photo-frame :filename="filename" :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
-            <photo-list class="photo-list" @raw_decoded="i => img = i" />
+            <photo-list class="photo-list" @raw_decoded="(i, name) => {img = i; filename = name;}" />
             <histogram :histogram="histogram_data" />
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
                 @histogram_load="hd => histogram_data = hd" />
@@ -23,6 +23,7 @@ import ControlPanel from './components/ControlPanel.vue'
 export default {
     data() {
         return {
+            filename: '',
             img: null,
             white_balance: [],
             histogram_data: null,
