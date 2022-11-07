@@ -32,6 +32,10 @@ export default {
 </script>
 
 <style scoped>
+* {
+    font-size: 0.8rem;
+    color: #777;
+}
 .title {
     min-width: 150px;
 }

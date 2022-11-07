@@ -36,5 +36,5 @@ export default {
 </script>
 
 <style scoped>
-.o-upl {width: 128px;}
+.o-upl {width: 100%; height: 48px}
 </style>

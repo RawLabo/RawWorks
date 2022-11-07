@@ -10,12 +10,12 @@ import ControlPanel from './components/ControlPanel.vue'
     <div class="frame">
         <photo-frame :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
+            <photo-list class="photo-list" @raw_decoded="i => img = i" />
             <histogram :histogram="histogram_data" />
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
                 @histogram_load="hd => histogram_data = hd" />
             <perf-timer :timer="timer" />
         </div>
-        <photo-list class="photo-list" @raw_decoded="i => img = i" />
     </div>
 </template>
 
@@ -54,12 +54,11 @@ export default {
     height: 100%;
     display: grid;
     grid-template-columns: 1fr 272px;
-    grid-template-rows: 1fr 128px;
+    grid-template-rows: 1fr;
 }
 
 .photo-list {
     padding: .5rem;
-    grid-area: 2 / 1 / 3 / 3;
 }
 
 .side-panel {

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <canvas width="256" height="128" ref="canvas"></canvas>
+        <canvas v-show="histogram" width="256" height="128" ref="canvas"></canvas>
     </div>
 </template>
 
