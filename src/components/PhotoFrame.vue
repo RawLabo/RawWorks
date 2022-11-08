@@ -37,6 +37,7 @@ export default {
         this.updateHeightAlso(p1);
         this.left_offset = 0;
         this.top_offset = 0;
+        this.tip.scale = this[p1] / this.img_info[p1];
         return;
       }
 

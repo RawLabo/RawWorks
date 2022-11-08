@@ -15,7 +15,10 @@
     user-select: none;
 }
 
-html { font-size: 14px; }
+html {
+    font-size: 14px;
+}
+
 html,
 body,
 #app {
@@ -57,4 +60,22 @@ body {
 .o-chk--transparent .o-chk__check {
     background-color: #333;
     border: 0;
+}
+
+body .o-slide__track {
+    background: #333;
+}
+
+::-webkit-scrollbar {
+    width: 3px;
+}
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #fff3;
+    border-radius: 16px;
+}
+::-webkit-scrollbar-button {
+    display:none;
 }
