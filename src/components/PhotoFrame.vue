@@ -1,6 +1,10 @@
 <template>
-  <div ref="container" class="container flex-center" @wheel="zoom" @mousedown="moveStart" @mousemove="move"
-    @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom100">
+  <div ref="container" class="container flex-center" 
+    @wheel="zoom" 
+    @gesturestart="touchZoomStart" @gesturechange="zoom" 
+    @touchstart="moveStart" @touchmove="move" @touchend="moveEnd" 
+    @mousedown="moveStart" @mousemove="move" @mouseup="moveEnd" @mouseleave="moveEnd" 
+    @dblclick="zoom100">
     <canvas :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
@@ -14,6 +18,7 @@
 import { quickraw, initWebgl, render, disposeWasm } from "../quickraw";
 
 let move_prev_pos = null;
+let touch_distence = 0;
 
 export default {
   props: ['img', 'filename'],
@@ -26,7 +31,12 @@ export default {
     zoom100(e) {
       this.zoom(e, true);
     },
+    touchZoomStart(e) {
+      touch_distence = e.scale;
+    },
     zoom(e, toggle_100) {
+      e.preventDefault();
+
       const container = this.$refs.container;
       const canvas = this.$refs.canvas;
       const [p1, p2] = this.scale_params;
@@ -41,7 +51,8 @@ export default {
         return;
       }
 
-      const delta_y = toggle_100 ? this.img_info[p1] - this[p1] : -e.deltaY;
+      const delta_y = e.scale ? (e.scale - touch_distence) * 1000 : toggle_100 ? this.img_info[p1] - this[p1] : -e.deltaY;
+      touch_distence = e.scale;
 
       this[p1] += delta_y;
       this.updateHeightAlso(p1);
@@ -71,9 +82,23 @@ export default {
       this.checkCanvasTransform();
     },
     moveStart(e) {
+      if (e.touches) {
+        if (e.touches.length > 1)
+          return false;
+
+        e = e.touches[0];
+      }
+
       move_prev_pos = [e.clientX, e.clientY];
     },
     move(e) {
+      if (e.touches) {
+        if (e.touches.length > 1)
+          return false;
+
+        e = e.touches[0];
+      }
+
       if (move_prev_pos) {
         this.left_offset += e.clientX - move_prev_pos[0];
         this.top_offset += e.clientY - move_prev_pos[1];
@@ -82,7 +107,7 @@ export default {
         this.checkCanvasTransform();
       }
     },
-    moveEnd(e) {
+    moveEnd() {
       move_prev_pos = null;
     },
     checkCanvasTransform() {
