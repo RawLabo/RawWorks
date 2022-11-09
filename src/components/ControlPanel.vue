@@ -89,25 +89,18 @@ export default {
 
             const pixels = new Uint8Array(width * height * 4);
             const gl = this.webgl_instance.gl;
-            readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(arr => {
-                const row_len = width * 4;
-                const pixels = new Uint8Array(height * row_len);
-                for (let row = 0; row < height; row++) {
-                    const start = row * row_len;
-                    pixels.set(arr.subarray(start, start + row_len), (height - row - 1) * row_len);
-                }
-                const jpeg = quickraw.encode_to_jpeg(pixels, width, height);
-                disposeWasm();
-                
-                const blob = new Blob([jpeg.buffer]);
-                const link = document.createElement('a');
-                link.download = filename + '.jpg';
-                link.href = window.URL.createObjectURL(blob);
-                link.click();
-                setTimeout(() => {
-                    this.generating_exports = false;
-                }, 300);
-            });
+            readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+                .then(pixels => window.sendToWorker(['rgba_to_jpeg', [pixels.buffer]], pixels, width, height))
+                .then(jpeg => {
+                    const blob = new Blob([jpeg.buffer]);
+                    const link = document.createElement('a');
+                    link.download = filename + '.jpg';
+                    link.href = window.URL.createObjectURL(blob);
+                    link.click();
+                    setTimeout(() => {
+                        this.generating_exports = false;
+                    }, 300);
+                });
         },
         exportImgByCanvas() {
             if (this.generating_exports) return;
