@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { updateUniform, quickraw, disposeWasm } from "../quickraw";
+import { updateUniform, quickraw, readPixelsAsync, disposeWasm } from "../quickraw";
 
 let timeout = 1;
 const lag = 250;
@@ -71,23 +71,60 @@ export default {
     },
     methods: {
         exportImg() {
+            if (navigator.userAgent.indexOf('Safari') > -1 && navigator.userAgent.indexOf('Chrome') == -1) {
+                this.exportImgByWasm();
+            } else {
+                this.exportImgByCanvas();
+            }
+        },
+        exportImgByWasm() {
             if (this.generating_exports) return;
 
             this.generating_exports = true;
 
-            setTimeout(() => {
-                const selected_canvas = document.querySelectorAll('canvas.selected');
-                [].slice.call(selected_canvas).forEach(canvas => {
-                    const filename = canvas.getAttribute('data-filename');
-                    const link = document.createElement('a');
-                    link.download = filename + '.jpg';
-                    link.href = canvas.toDataURL('image/jpeg', 0.98);
-                    link.click();
-                });
+            const canvas = document.querySelector('canvas.selected');
+            const filename = canvas.getAttribute('data-filename');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            const pixels = new Uint8Array(width * height * 4);
+            const gl = this.webgl_instance.gl;
+            readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(arr => {
+                const row_len = width * 4;
+                const pixels = new Uint8Array(height * row_len);
+                for (let row = 0; row < height; row++) {
+                    const start = row * row_len;
+                    pixels.set(arr.subarray(start, start + row_len), (height - row - 1) * row_len);
+                }
+                const jpeg = quickraw.encode_to_jpeg(pixels, width, height);
+                disposeWasm();
+                
+                const blob = new Blob([jpeg.buffer]);
+                const link = document.createElement('a');
+                link.download = filename + '.jpg';
+                link.href = window.URL.createObjectURL(blob);
+                link.click();
                 setTimeout(() => {
                     this.generating_exports = false;
-                }, 500);
-            }, 50);
+                }, 300);
+            });
+        },
+        exportImgByCanvas() {
+            if (this.generating_exports) return;
+
+            this.generating_exports = true;
+
+            const canvas = document.querySelector('canvas.selected');
+            const filename = canvas.getAttribute('data-filename');
+            const link = document.createElement('a');
+            link.download = filename + '.jpg';
+            canvas.toBlob(blob => {
+                link.href = window.URL.createObjectURL(blob);
+                link.click();
+                setTimeout(() => {
+                    this.generating_exports = false;
+                }, 300);
+            }, 'image/jpeg', 0.98);
         },
         setShader(name, value, method) {
             if (this.prevent_shader_update) return;

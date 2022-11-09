@@ -268,7 +268,7 @@ async function getBufferSubDataAsync(gl, target, buffer, srcByteOffset, dstBuffe
     gl.bindBuffer(target, null);
 }
 
-async function readPixelsAsync(gl, x, y, w, h, format, type, dest) {
+export async function readPixelsAsync(gl, x, y, w, h, format, type, dest) {
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
     gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
