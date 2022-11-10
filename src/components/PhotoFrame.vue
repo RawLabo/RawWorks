@@ -1,10 +1,7 @@
 <template>
-  <div ref="container" class="container flex-center" 
-    @wheel="zoom" 
-    @gesturestart="touchZoomStart" @gesturechange="zoom" 
-    @touchstart="moveStart" @touchmove="move" @touchend="moveEnd" 
-    @mousedown="moveStart" @mousemove="move" @mouseup="moveEnd" @mouseleave="moveEnd" 
-    @dblclick="zoom100">
+  <div ref="container" class="container flex-center" @wheel="zoom" @gesturestart="touchZoomStart" @gesturechange="zoom"
+    @touchstart="moveStart" @touchmove="move" @touchend="moveEnd" @mousedown="moveStart" @mousemove="move"
+    @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom100">
     <canvas :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
@@ -15,7 +12,7 @@
 </template>
 
 <script>
-import { quickraw, initWebgl, render, disposeWasm } from "../quickraw";
+import { initWebgl, render } from "../webgl";
 
 let move_prev_pos = null;
 let touch_distence = 0;
@@ -174,6 +171,7 @@ export default {
       const white_balance = img.wb;
       const color_matrix = img.color_matrix;
       const img_data = img.data;
+      delete img.data; // free image memory
 
       this.img_info.width = width;
       this.img_info.height = height;
@@ -198,12 +196,10 @@ export default {
           color_matrix,
           (pixels) => {
             window.timer.pixels_read = performance.now();
-            const histogram_data = quickraw.calc_histogram(pixels);
-            window.timer.histogram_calced = performance.now();
-
-            disposeWasm();
-
-            this.$emit("histogram_load", histogram_data, this.webgl_instance);
+            window.sendToWorker(['calc_histogram', [pixels.buffer]], pixels).then(data => {
+              window.timer.histogram_calced = performance.now();
+              this.$emit("histogram_load", data, this.webgl_instance);
+            });
           }
         );
         window.timer.rendered = performance.now();

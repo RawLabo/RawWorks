@@ -17,7 +17,7 @@ app.mount('#app');
 
 (() => {
     // setup web worker
-    const worker = new Worker(new URL('./worker.js', import.meta.url), {
+    const worker = new Worker(new URL('./quickraw/worker.js', import.meta.url), {
         type: 'module'
     });
 

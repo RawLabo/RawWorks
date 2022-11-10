@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { updateUniform, quickraw, readPixelsAsync, disposeWasm } from "../quickraw";
+import { updateUniform, readPixelsAsync } from "../webgl";
 
 let timeout = 1;
 const lag = 250;
@@ -123,9 +123,9 @@ export default {
             if (this.prevent_shader_update) return;
 
             timeout = updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
-                const histogram_data = quickraw.calc_histogram(pixels);
-                disposeWasm();
-                this.$emit("histogram_load", histogram_data);
+                window.sendToWorker(['calc_histogram', [pixels.buffer]], pixels).then(data => {
+                    this.$emit("histogram_load", data);
+                });
             }, timeout, lag);
         },
         resetShader(prevent_shader_update) {

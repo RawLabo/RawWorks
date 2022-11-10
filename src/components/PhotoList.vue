@@ -7,8 +7,6 @@
 </template>
 
 <script>
-import { quickraw } from "../quickraw";
-
 export default {
     data() {
         return {
@@ -23,11 +21,11 @@ export default {
             reader.onload = () => {
                 window.timer.file_loaded = performance.now();
 
-                const img = quickraw.load_image(new Uint8Array(reader.result));
-
-                window.timer.raw_decoded = performance.now();
-
-                this.$emit("raw_decoded", img, file.name);
+                const content = new Uint8Array(reader.result);
+                window.sendToWorker(['load_image', [content.buffer]], content).then(img => {
+                    window.timer.raw_decoded = performance.now();
+                    this.$emit("raw_decoded", img, file.name);
+                });
             };
             reader.readAsArrayBuffer(file);
         }
@@ -36,5 +34,8 @@ export default {
 </script>
 
 <style scoped>
-.o-upl {width: 100%; height: 48px}
+.o-upl {
+    width: 100%;
+    height: 48px
+}
 </style>
