@@ -15,19 +15,16 @@ const fn_map = {
         }
 
         const jpeg = quickraw.encode_to_jpeg(pixels, width, height);
-        disposeWasm();
 
         postMessage({ id, result: jpeg }, [jpeg.buffer]);
     },
     calc_histogram(id, pixels) {
         const histogram_data = quickraw.calc_histogram(pixels);
-        disposeWasm();
 
         postMessage({ id, result: histogram_data }, [histogram_data.buffer]);
     },
     load_image(id, buffer) {
         const img = quickraw.load_image(buffer);
-        disposeWasm();
 
         const result = {
             wb: img.wb,
@@ -45,6 +42,12 @@ const fn_map = {
 
 onmessage = (e) => {
     if (e.data.method in fn_map) {
-        fn_map[e.data.method](e.data.id, ...e.data.args);
+        try {
+            fn_map[e.data.method](e.data.id, ...e.data.args);
+        } catch(err) {
+            postMessage({ id: e.data.id, err: err.toString() });
+        } finally {
+            disposeWasm();
+        }
     }
 }

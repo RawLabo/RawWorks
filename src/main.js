@@ -25,7 +25,12 @@ app.mount('#app');
     const jobs = {};
     worker.onmessage = (e) => {
         if (e.data.id in jobs) {
-            jobs[e.data.id](e.data.result);
+            if (e.data.err) {
+                alert(e.data.err);
+            } else {
+                jobs[e.data.id](e.data.result);
+            }
+            
             delete jobs[e.data.id];
         }
     };
