@@ -40,7 +40,7 @@ export default {
     },
     watch: {
         img(v) {
-            this.white_balance = [].slice.call(v.wb);
+            this.white_balance = [].slice.call(v.white_balance);
         }
     },
     mounted() {

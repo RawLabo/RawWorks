@@ -27,16 +27,25 @@ const fn_map = {
         const img = quickraw.load_image(buffer);
 
         const result = {
-            wb: img.wb,
-            rotation: img.rotation,
+            orientation: img.orientation,
             width: img.width,
             height: img.height,
-            wb: img.wb,
+            white_balance: img.white_balance,
             color_matrix: img.color_matrix,
         };
         result.data = img.data;
 
-        postMessage({ id, result }, [result.data.buffer, result.wb.buffer, result.color_matrix.buffer]);
+        postMessage({ id, result }, [result.data.buffer, result.white_balance.buffer, result.color_matrix.buffer]);
+    },
+    load_thumbnail(id, buffer) {
+        const thumbnail = quickraw.load_thumbnail(buffer);
+        
+        const result = {
+            orientation: thumbnail.orientation,
+        };
+        result.data = thumbnail.data;
+
+        postMessage({ id, result }, [result.data.buffer]);
     }
 };
 
