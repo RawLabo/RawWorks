@@ -178,7 +178,7 @@ export function initWebgl(canvas, width, height) {
     }
 }
 
-export function render(webgl_instance, img_data, size, rotation, white_balance, color_matrix, pixels_callback) {
+export function render(webgl_instance, img_data, size, orientation, white_balance, color_matrix, pixels_callback) {
     const { gl, uniform } = webgl_instance;
     const [width, height] = size;
 
@@ -187,9 +187,9 @@ export function render(webgl_instance, img_data, size, rotation, white_balance, 
 
     gl.viewport(0, 0, width, height);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, rotation % 180 ? height : width, rotation % 180 ? width : height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, orientation % 180 ? height : width, orientation % 180 ? width : height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
 
-    gl.uniform1f(uniform.degree, rotation);
+    gl.uniform1f(uniform.degree, orientation);
     gl.uniform1f(uniform.black_point, 0);
     gl.uniform1f(uniform.white_point, 0);
     gl.uniform1f(uniform.highlight_point, 0);

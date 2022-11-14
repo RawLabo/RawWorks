@@ -18,6 +18,21 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
+const heap = new Array(32).fill(undefined);
+
+heap.push(undefined, null, true, false);
+
+let heap_next = heap.length;
+
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
+
+    heap[idx] = obj;
+    return idx;
+}
+
 let cachedInt32Memory0 = new Int32Array();
 
 function getInt32Memory0() {
@@ -25,19 +40,6 @@ function getInt32Memory0() {
         cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
     }
     return cachedInt32Memory0;
-}
-
-let cachedUint16Memory0 = new Uint16Array();
-
-function getUint16Memory0() {
-    if (cachedUint16Memory0.byteLength === 0) {
-        cachedUint16Memory0 = new Uint16Array(wasm.memory.buffer);
-    }
-    return cachedUint16Memory0;
-}
-
-function getArrayU16FromWasm0(ptr, len) {
-    return getUint16Memory0().subarray(ptr / 2, ptr / 2 + len);
 }
 
 let cachedFloat32Memory0 = new Float32Array();
@@ -61,15 +63,40 @@ function passArray8ToWasm0(arg, malloc) {
     WASM_VECTOR_LEN = arg.length;
     return ptr;
 }
+
+function getObject(idx) { return heap[idx]; }
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
+}
 /**
 * @param {Uint8Array} input
 * @returns {Image}
 */
 export function load_image(input) {
-    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.load_image(ptr0, len0);
-    return Image.__wrap(ret);
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.load_image(retptr, ptr0, len0);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return Image.__wrap(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
 }
 
 let cachedUint32Memory0 = new Uint32Array();
@@ -108,22 +135,47 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
-* @param {Uint8Array} pixels
+* @param {number} pixels_ptr
 * @param {number} width
 * @param {number} height
 * @returns {Uint8Array}
 */
-export function encode_to_jpeg(pixels, width, height) {
+export function encode_to_jpeg(pixels_ptr, width, height) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passArray8ToWasm0(pixels, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.encode_to_jpeg(retptr, ptr0, len0, width, height);
+        wasm.encode_to_jpeg(retptr, pixels_ptr, width, height);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
-        var v1 = getArrayU8FromWasm0(r0, r1).slice();
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        var r3 = getInt32Memory0()[retptr / 4 + 3];
+        if (r3) {
+            throw takeObject(r2);
+        }
+        var v0 = getArrayU8FromWasm0(r0, r1).slice();
         wasm.__wbindgen_free(r0, r1 * 1);
-        return v1;
+        return v0;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
+* @param {Uint8Array} buffer
+* @returns {Thumbnail}
+*/
+export function load_thumbnail(buffer) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray8ToWasm0(buffer, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.load_thumbnail(retptr, ptr0, len0);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return Thumbnail.__wrap(r0);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
@@ -180,40 +232,49 @@ export class Image {
     /**
     * @returns {number}
     */
-    get rotation() {
-        const ret = wasm.__wbg_get_image_rotation(this.ptr);
+    get orientation() {
+        const ret = wasm.__wbg_get_image_orientation(this.ptr);
         return ret;
     }
     /**
     * @param {number} arg0
     */
-    set rotation(arg0) {
-        wasm.__wbg_set_image_rotation(this.ptr, arg0);
+    set orientation(arg0) {
+        wasm.__wbg_set_image_orientation(this.ptr, arg0);
     }
     /**
-    * @returns {Uint16Array}
+    * @returns {number}
     */
-    get data() {
-        try {
-            const ptr = this.__destroy_into_raw();
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.image_data(retptr, ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU16FromWasm0(r0, r1).slice();
-            wasm.__wbindgen_free(r0, r1 * 2);
-            return v0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
+    get data_ptr() {
+        const ret = wasm.__wbg_get_image_data_ptr(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set data_ptr(arg0) {
+        wasm.__wbg_set_image_data_ptr(this.ptr, arg0);
+    }
+    /**
+    * @returns {number}
+    */
+    get data_len() {
+        const ret = wasm.__wbg_get_image_data_len(this.ptr);
+        return ret >>> 0;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set data_len(arg0) {
+        wasm.__wbg_set_image_data_len(this.ptr, arg0);
     }
     /**
     * @returns {Float32Array}
     */
-    get wb() {
+    get white_balance() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.image_wb(retptr, this.ptr);
+            wasm.image_white_balance(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayF32FromWasm0(r0, r1).slice();
@@ -234,6 +295,46 @@ export class Image {
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayF32FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 4);
+            return v0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+}
+/**
+*/
+export class Thumbnail {
+
+    static __wrap(ptr) {
+        const obj = Object.create(Thumbnail.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_thumbnail_free(ptr);
+    }
+    /**
+    * @returns {Uint8Array}
+    */
+    get data() {
+        try {
+            const ptr = this.__destroy_into_raw();
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.thumbnail_data(retptr, ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 1);
             return v0;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
@@ -275,6 +376,10 @@ async function load(module, imports) {
 function getImports() {
     const imports = {};
     imports.wbg = {};
+    imports.wbg.__wbindgen_error_new = function(arg0, arg1) {
+        const ret = new Error(getStringFromWasm0(arg0, arg1));
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
@@ -291,7 +396,6 @@ function finalizeInit(instance, module) {
     init.__wbindgen_wasm_module = module;
     cachedFloat32Memory0 = new Float32Array();
     cachedInt32Memory0 = new Int32Array();
-    cachedUint16Memory0 = new Uint16Array();
     cachedUint32Memory0 = new Uint32Array();
     cachedUint8Memory0 = new Uint8Array();
 
