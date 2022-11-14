@@ -135,17 +135,15 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
-* @param {Uint8Array} pixels
+* @param {number} pixels_ptr
 * @param {number} width
 * @param {number} height
 * @returns {Uint8Array}
 */
-export function encode_to_jpeg(pixels, width, height) {
+export function encode_to_jpeg(pixels_ptr, width, height) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passArray8ToWasm0(pixels, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.encode_to_jpeg(retptr, ptr0, len0, width, height);
+        wasm.encode_to_jpeg(retptr, pixels_ptr, width, height);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -153,9 +151,9 @@ export function encode_to_jpeg(pixels, width, height) {
         if (r3) {
             throw takeObject(r2);
         }
-        var v1 = getArrayU8FromWasm0(r0, r1).slice();
+        var v0 = getArrayU8FromWasm0(r0, r1).slice();
         wasm.__wbindgen_free(r0, r1 * 1);
-        return v1;
+        return v0;
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }

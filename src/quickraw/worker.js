@@ -1,19 +1,21 @@
 import init, * as quickraw from './quickraw'
+let wasm;
 
 function disposeWasm() {
-    init(init.__wbindgen_wasm_module);
+    init(init.__wbindgen_wasm_module).then(v => wasm = v);
 }
-
 const fn_map = {
     rgba_to_jpeg(id, input, width, height) {
         const row_len = width * 4;
-        const pixels = new Uint8Array(height * row_len);
+        const ptr = wasm.__wbindgen_malloc(height * row_len);
+
+        const pixels = new Uint8Array(wasm.memory.buffer);
         for (let row = 0; row < height; row++) {
             const start = row * row_len;
-            pixels.set(input.subarray(start, start + row_len), (height - row - 1) * row_len);
+            pixels.set(input.subarray(start, start + row_len), ptr + (height - row - 1) * row_len);
         }
 
-        const jpeg = quickraw.encode_to_jpeg(pixels, width, height);
+        const jpeg = quickraw.encode_to_jpeg(ptr, width, height);
 
         postMessage({ id, result: jpeg }, [jpeg.buffer]);
     },
@@ -33,7 +35,7 @@ const fn_map = {
         postMessage({ id, result }, [result.data.buffer]);
     },
     initWasm(id, buffer) {
-        init(buffer);
+        init(buffer).then(v => wasm = v);
         postMessage({ id });
     }
 };
