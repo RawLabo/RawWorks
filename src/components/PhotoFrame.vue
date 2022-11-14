@@ -197,6 +197,7 @@ export default {
           (pixels) => {
             window.timer.pixels_read = performance.now();
             window.sendToWorker(['calc_histogram', [pixels.buffer]], pixels).then(data => {
+              window.quickraw.dispose();
               window.timer.histogram_calced = performance.now();
               this.$emit("histogram_load", data, this.webgl_instance);
             });

@@ -1,5 +1,4 @@
 import init, * as quickraw from './quickraw'
-init()
 
 function disposeWasm() {
     init(init.__wbindgen_wasm_module);
@@ -23,29 +22,19 @@ const fn_map = {
 
         postMessage({ id, result: histogram_data }, [histogram_data.buffer]);
     },
-    load_image(id, buffer) {
-        const img = quickraw.load_image(buffer);
-
-        const result = {
-            orientation: img.orientation,
-            width: img.width,
-            height: img.height,
-            white_balance: img.white_balance,
-            color_matrix: img.color_matrix,
-        };
-        result.data = img.data;
-
-        postMessage({ id, result }, [result.data.buffer, result.white_balance.buffer, result.color_matrix.buffer]);
-    },
     load_thumbnail(id, buffer) {
         const thumbnail = quickraw.load_thumbnail(buffer);
-        
+
         const result = {
             orientation: thumbnail.orientation,
         };
         result.data = thumbnail.data;
 
         postMessage({ id, result }, [result.data.buffer]);
+    },
+    initWasm(id, buffer) {
+        init(buffer);
+        postMessage({ id });
     }
 };
 
@@ -53,10 +42,11 @@ onmessage = (e) => {
     if (e.data.method in fn_map) {
         try {
             fn_map[e.data.method](e.data.id, ...e.data.args);
-        } catch(err) {
+        } catch (err) {
             postMessage({ id: e.data.id, err: err.toString() });
         } finally {
-            disposeWasm();
+            if (e.data.method in new Set(['rgba_to_jpeg', 'calc_histogram', 'load_thumbnail']))
+                disposeWasm();
         }
     }
 }

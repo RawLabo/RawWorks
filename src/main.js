@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import './global.css'
 import App from './App.vue'
+import init, * as quickraw from './quickraw/quickraw'
 
 const app = createApp(App);
 
@@ -30,7 +31,7 @@ app.mount('#app');
             } else {
                 jobs[e.data.id](e.data.result);
             }
-            
+
             delete jobs[e.data.id];
         }
     };
@@ -46,4 +47,18 @@ app.mount('#app');
             jobs[id] = resolve;
         });
     };
+})();
+
+(() => {
+    window.quickraw = {
+        fn: quickraw,
+        dispose() {
+            init(init.__wbindgen_wasm_module).then(v => window.quickraw.wasm = v);
+        }
+    };
+
+    init().then(v => {
+        window.quickraw.wasm = v;
+        window.sendToWorker(['initWasm', []], init.__wbindgen_wasm_module);
+    });
 })();
