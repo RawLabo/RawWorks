@@ -225,6 +225,10 @@ export default {
 </script>
 
 <style scoped>
+canvas {
+  image-rendering: pixelated;
+}
+
 .container {
   position: relative;
   background: #111;
