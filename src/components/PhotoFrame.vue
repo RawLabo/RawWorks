@@ -173,8 +173,8 @@ export default {
       const img_data = img.data;
       delete img.data; // free image memory
 
-      this.img_info.width = width;
-      this.img_info.height = height;
+      this.img_info.width = width / window.devicePixelRatio;
+      this.img_info.height = height / window.devicePixelRatio;
       this.img_info.ratio = width / height;
       this.scale_params =
         container_width / container_height < width / height
