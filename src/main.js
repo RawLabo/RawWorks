@@ -52,6 +52,9 @@ app.mount('#app');
 (() => {
     window.quickraw = {
         fn: quickraw,
+        settings: {
+            better_demosaicing: false
+        },
         dispose() {
             init(init.__wbindgen_wasm_module).then(v => window.quickraw.wasm = v);
         }

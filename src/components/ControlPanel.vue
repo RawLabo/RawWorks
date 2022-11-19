@@ -35,10 +35,11 @@
             :tooltip="false" @dblclick="shader.highlight_threshold = 0.75" />
 
         <div class="flex">
-            <o-button :disabled="generating_exports" outlined @click="exportImg">↓ Export</o-button>
             <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
+            <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
         </div>
 
+        <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportImg">↓ Export</o-button>
     </div>
 </template>
 
@@ -54,6 +55,7 @@ export default {
         return {
             prevent_shader_update: false,
             show_origin: false,
+            better_demosaicing: false,
             generating_exports: false,
             mem: null,
             shader: {
@@ -143,6 +145,10 @@ export default {
         }
     },
     watch: {
+        better_demosaicing(v) {
+            window.quickraw.settings.better_demosaicing = v;
+            this.$emit("change_demosaicing");
+        },
         show_origin(v) {
             if (v) {
                 this.mem = {};
@@ -199,6 +205,10 @@ export default {
 .flex {
     justify-content: space-between;
     align-items: center;
+}
+
+.export-btn {
+    margin-top: 0.5rem;
 }
 
 a.disabled {
