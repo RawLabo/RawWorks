@@ -10,10 +10,10 @@ import ControlPanel from './components/ControlPanel.vue'
     <div class="frame">
         <photo-frame :filename="filename" :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
-            <photo-list class="photo-list" @raw_decoded="(i, name) => {img = i; filename = name;}" />
+            <photo-list ref="photo_lst_comp" class="photo-list" @raw_decoded="(i, name) => {img = i; filename = name;}" />
             <histogram :histogram="histogram_data" />
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
-                @histogram_load="hd => histogram_data = hd" />
+                @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.fileLoad()" />
             <perf-timer :timer="timer" />
         </div>
     </div>
