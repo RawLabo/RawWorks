@@ -1,7 +1,7 @@
 <template>
   <div ref="container" class="container flex-center" @wheel="zoom" @gesturestart="touchZoomStart" @gesturechange="zoom"
     @touchstart="moveStart" @touchmove="move" @touchend="moveEnd" @mousedown="moveStart" @mousemove="move"
-    @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom100">
+    @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom($event, 1)">
     <canvas :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
@@ -25,13 +25,10 @@ export default {
         this.height = this[p1] / this.img_info.ratio;
       }
     },
-    zoom100(e) {
-      this.zoom(e, true);
-    },
     touchZoomStart(e) {
       touch_distence = e.scale;
     },
-    zoom(e, toggle_100) {
+    zoom(e, toggle_to_x) {
       e.preventDefault();
 
       const container = this.$refs.container;
@@ -39,7 +36,7 @@ export default {
       const [p1, p2] = this.scale_params;
 
       // double click toggle from fit to 100%
-      if (toggle_100 && this[p1] == this.img_info[p1]) {
+      if (toggle_to_x == 1 && this[p1] == this.img_info[p1]) {
         this[p1] = container[p2];
         this.updateHeightAlso(p1);
         this.left_offset = 0;
@@ -48,7 +45,7 @@ export default {
         return;
       }
 
-      const delta_y = e.scale ? (e.scale - touch_distence) * 1000 : toggle_100 ? this.img_info[p1] - this[p1] : -e.deltaY;
+      const delta_y = e.scale ? (e.scale - touch_distence) * 1000 : toggle_to_x ? this.img_info[p1] * toggle_to_x - this[p1] : -e.deltaY;
       touch_distence = e.scale;
 
       this[p1] += delta_y;
@@ -219,6 +216,15 @@ export default {
 
     window.addEventListener("resize", () => {
       this.checkCanvasTransform();
+    });
+
+    window.addEventListener("keyup", e => {
+      if (e.key >= 1 && e.key <= 8) {
+        const container = this.$refs.container;
+        e.pageX = container.offsetLeft + container.clientWidth / 2;
+        e.pageY = container.offsetTop + container.clientHeight / 2;
+        this.zoom(e, parseInt(e.key));
+      }
     });
   },
 };
