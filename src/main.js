@@ -65,3 +65,8 @@ app.mount('#app');
         window.sendToWorker(['initWasm', []], init.__wbindgen_wasm_module);
     });
 })();
+
+window.onbeforeunload = (e) => {
+    e.preventDefault();
+    return e.returnValue = "Are you sure you leave this App?";
+}

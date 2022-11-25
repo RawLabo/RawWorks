@@ -346,6 +346,19 @@ export class Thumbnail {
         wasm.__wbg_thumbnail_free(ptr);
     }
     /**
+    * @returns {number}
+    */
+    get orientation() {
+        const ret = wasm.__wbg_get_image_width(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set orientation(arg0) {
+        wasm.__wbg_set_image_width(this.ptr, arg0);
+    }
+    /**
     * @returns {Uint8Array}
     */
     get data() {

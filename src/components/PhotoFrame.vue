@@ -117,7 +117,7 @@ export default {
 
         this.left_offset = 0;
         this.top_offset = 0;
-        this.transition = "transform 0.3s";
+        this.transition = "transform ease 0.3s";
         setTimeout(() => {
           this.transition = "";
         }, 300);
