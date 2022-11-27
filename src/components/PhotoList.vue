@@ -4,16 +4,13 @@
             :style="{ opacity: isLoading ? 1 : 0, 'pointer-events': isLoading ? 'auto' : 'none' }">
             Loading...
         </div>
-        <div class="buttons" ref="buttons">
-            <label class="uploader flex-center">
-                + raw
-                <input type="file" title="" multiple @change="fileChange" />
-            </label>
-            <label class="uploader flex-center">
-                + folder
-                <input type="file" title="" webkitdirectory @change="fileChange" />
-            </label>
-        </div>
+        <label ref="uploader" :class="{ uploader: true, 'flex-center': true, active: isDraggingOver }"
+            @dragover="isDraggingOver = true" @dragleave="isDraggingOver = false">
+            Click to + raw files
+            <br>
+            Drop to + folder
+            <input type="file" title="" multiple @change="fileChange" @drop="fileChange" />
+        </label>
         <div @click="loadImage(index)" v-for="(file, index) in files"
             :class="{ 'flex-center': true, thumbnail: true, active: index == activeIndex }">
             <img :src="file.thumb64"
@@ -34,12 +31,27 @@ function checkExtension(name) {
     return false;
 }
 
+async function readEntry(item, result) {
+    if (item.isFile) {
+        if (checkExtension(item.name)) {
+            const f = await new Promise((resolve, reject) => item.file(resolve, reject));
+            result.push(f);
+        }
+    } else if (item.isDirectory) {
+        const entries = await new Promise(resolve => item.createReader().readEntries(resolve));
+        for (let i = 0; i < entries.length; i++) {
+            await readEntry(entries[i], result);
+        }
+    }
+}
+
 const reader = new FileReader();
 const readSets = new Set();
 
 export default {
     data() {
         return {
+            isDraggingOver: false,
             isLoading: false,
             activeIndex: -1,
             files: [],
@@ -54,7 +66,7 @@ export default {
         },
         lazyLoad() {
             const width = this.$refs.wrapper.clientWidth;
-            const scroll_left = this.$refs.wrapper.scrollLeft - this.$refs.buttons.clientWidth;
+            const scroll_left = this.$refs.wrapper.scrollLeft - this.$refs.uploader.clientWidth;
             const thumb_width = 128 + 4;
             const left_bound = parseInt(scroll_left / thumb_width);
             let right_bound = parseInt((scroll_left + width) / thumb_width);
@@ -93,8 +105,22 @@ export default {
             readSets.add(f);
             reader.readAsArrayBuffer(f);
         },
-        fileChange(e) {
-            const files = Array.from(e.target.files).filter(f => checkExtension(f.name));
+        async fileChange(e) {
+            e.preventDefault();
+            this.isDraggingOver = false;
+
+            let files;
+            if (e.dataTransfer) {
+                files = [];
+                let items = e.dataTransfer.items;
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i].webkitGetAsEntry();
+                    await readEntry(item, files);
+                }
+            } else {
+                files = Array.from(e.target.files).filter(f => checkExtension(f.name));
+            }
+
             files.sort((a, b) => b.lastModified - a.lastModified);
             if (this.activeIndex >= 0) {
                 this.activeIndex += files.length;
@@ -136,10 +162,6 @@ export default {
 </script>
 
 <style scoped>
-.buttons {
-    height: 128px;
-}
-
 .uploader {
     color: #888;
     padding: 8px;
@@ -147,10 +169,9 @@ export default {
     position: relative;
     transition: all ease 0.5s;
     border-radius: 4px;
-    width: 70px;
-    height: 50px;
+    min-width: 128px;
+    min-height: 128px;
     text-align: center;
-    margin: 8px 0;
     background: #171717;
 }
 
@@ -167,6 +188,11 @@ export default {
     height: 100%;
     opacity: 0;
     cursor: pointer;
+}
+
+.uploader.active {
+    color: #fff;
+    border-color: #fff;
 }
 
 .thumbnail {
