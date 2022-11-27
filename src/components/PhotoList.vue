@@ -102,10 +102,12 @@ export default {
             this.lazyLoad();
         },
         loadImage(index) {
-            window.timer.file_to_load = performance.now();
+            if (index == this.activeIndex) return;
 
             if (index == undefined)
                 index = this.activeIndex;
+
+            window.timer.file_to_load = performance.now();
 
             this.activeIndex = index;
             const f = this.files[index].file;
