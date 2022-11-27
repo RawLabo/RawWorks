@@ -1,5 +1,9 @@
 <template>
     <div class="flex wrapper" ref="wrapper" @scroll="lazyLoad" @wheel="wheel">
+        <div class="loading flex-center"
+            :style="{ opacity: isLoading ? 1 : 0, 'pointer-events': isLoading ? 'auto' : 'none' }">
+            Loading...
+        </div>
         <div class="buttons" ref="buttons">
             <label class="uploader flex-center">
                 + raw
@@ -36,6 +40,7 @@ const readSets = new Set();
 export default {
     data() {
         return {
+            isLoading: false,
             activeIndex: -1,
             files: [],
             filesIndexToRead: []
@@ -109,6 +114,7 @@ export default {
 
             window.timer.file_to_load = performance.now();
 
+            this.isLoading = true;
             this.activeIndex = index;
             const f = this.files[index].file;
 
@@ -121,6 +127,7 @@ export default {
                 const img = await window.sendToWorker(['load_image', [content.buffer]], content, method);
                 window.timer.raw_decoded = performance.now();
                 this.$emit("raw_decoded", img, f.name);
+                this.isLoading = false;
             };
             reader.readAsArrayBuffer(f);
         }
@@ -186,9 +193,21 @@ export default {
 }
 
 .wrapper {
+    position: relative;
     overflow: auto;
     background: #111;
     padding: .5rem;
     padding-bottom: 2px;
+}
+
+.loading {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 136px;
+    background: #000a;
+    z-index: 1;
+    transition: opacity ease-in .2s;
 }
 </style>
