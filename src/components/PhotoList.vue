@@ -38,9 +38,17 @@ async function readEntry(item, result) {
             result.push(f);
         }
     } else if (item.isDirectory) {
-        const entries = await new Promise(resolve => item.createReader().readEntries(resolve));
-        for (let i = 0; i < entries.length; i++) {
-            await readEntry(entries[i], result);
+        const total_entries = [];
+        const reader = item.createReader();
+        let len = 0;
+        do {
+            const entries = await new Promise(resolve => reader.readEntries(resolve));
+            len = entries.length;
+            total_entries.push(...entries);
+        } while (len > 0);
+        
+        for (let i = 0; i < total_entries.length; i++) {
+            await readEntry(total_entries[i], result);
         }
     }
 }
