@@ -34,11 +34,26 @@ const fn_map = {
 
         postMessage({ id, result }, [result.data.buffer]);
     },
+    load_image(id, buffer, method) {
+        const img = quickraw[method](buffer);
+        const image = {
+            data: new Uint16Array(wasm.memory.buffer, img.data_ptr, img.data_len).slice(),
+            width: img.width,
+            height: img.height,
+            orientation: img.orientation,
+            white_balance: img.white_balance,
+            color_matrix: img.color_matrix
+        };
+
+        postMessage({ id, result: image }, [image.data.buffer]);
+    },
     initWasm(id, buffer) {
         init(buffer).then(v => wasm = v);
         postMessage({ id });
     }
 };
+
+const nondisposableMethods = new Set(['initWasm']);
 
 onmessage = (e) => {
     if (e.data.method in fn_map) {
@@ -47,8 +62,9 @@ onmessage = (e) => {
         } catch (err) {
             postMessage({ id: e.data.id, err: err.toString() });
         } finally {
-            if (e.data.method in new Set(['rgba_to_jpeg', 'calc_histogram', 'load_thumbnail']))
+            if (!nondisposableMethods.has(e.data.method)) {
                 disposeWasm();
+            }
         }
     }
 }
