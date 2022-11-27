@@ -113,20 +113,14 @@ export default {
             const f = this.files[index].file;
 
             const reader = new FileReader();
-            reader.onload = () => {
+            reader.onload = async () => {
                 window.timer.file_loaded = performance.now();
 
-                try {
-                    const content = new Uint8Array(reader.result);
-                    const fn_name = window.quickraw.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
-                    const img = window.quickraw.fn[fn_name](content);
-                    img.data = new Uint16Array(window.quickraw.wasm.memory.buffer, img.data_ptr, img.data_len);
-                    window.timer.raw_decoded = performance.now();
-                    this.$emit("raw_decoded", img, f.name);
-                } catch (e) {
-                    alert(e);
-                    window.quickraw.dispose();
-                }
+                const content = new Uint8Array(reader.result);
+                const method = window.quickraw.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
+                const img = await window.sendToWorker(['load_image', [content.buffer]], content, method);
+                window.timer.raw_decoded = performance.now();
+                this.$emit("raw_decoded", img, f.name);
             };
             reader.readAsArrayBuffer(f);
         }
