@@ -248,5 +248,6 @@ canvas {
   border-radius: 8px;
   padding: 4px 8px;
   cursor: default;
+  text-shadow: 0 0 2px #111;
 }
 </style>
