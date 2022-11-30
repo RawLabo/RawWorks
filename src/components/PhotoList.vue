@@ -1,5 +1,5 @@
 <template>
-    <div class="flex wrapper" ref="wrapper" @scroll="lazyLoad" @wheel="wheel">
+    <div class="flex list-wrapper" ref="wrapper" @scroll="lazyLoad" @wheel="wheel">
         <div class="loading flex-center"
             :style="{ opacity: isLoading ? 1 : 0, 'pointer-events': isLoading ? 'auto' : 'none' }">
             Loading...
@@ -236,7 +236,7 @@ export default {
     text-shadow: 0 0 2px #111;
     color: #eee;
 }
-.wrapper {
+.list-wrapper {
     position: relative;
     overflow: auto;
     background: #111;
