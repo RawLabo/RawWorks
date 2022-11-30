@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { initWebgl, render } from "../webgl";
+import { initWebgl, render, readPixelsAsync } from "../webgl";
 
 let move_prev_pos = null;
 let touch_distence = 0;
@@ -133,6 +133,21 @@ export default {
       this.top_offset = 0;
       this.tip.scale = 0;
     },
+    selectThisFrame() {
+      const gl = this.webgl_instance.gl;
+      const width = gl.canvas.width;
+      const height = gl.canvas.height;
+
+      const pixels = new Uint8Array(width * height * 4);
+      readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(pixels => {
+        window.timer.pixels_read = performance.now();
+        window.sendToWorker(['calc_histogram', [pixels.buffer]], pixels).then(data => {
+          window.quickraw.dispose();
+          window.timer.histogram_calced = performance.now();
+          this.$emit("histogram_load", data, this.webgl_instance);
+        });
+      })
+    }
   },
   data() {
     return {
@@ -248,5 +263,6 @@ canvas {
   border-radius: 8px;
   padding: 4px 8px;
   cursor: default;
+  text-shadow: 0 0 2px #111;
 }
 </style>

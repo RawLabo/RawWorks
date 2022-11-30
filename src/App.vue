@@ -7,8 +7,10 @@ import ControlPanel from './components/ControlPanel.vue'
 </script>
 
 <template>
-    <div class="frame">
-        <photo-frame :filename="filename" :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
+    <div class="body-wrapper">
+        <div class="frames" :style="{'grid-template-columns': `repeat(${grid_cols}, 1fr)`}">
+            <photo-frame :filename="filename" :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
+        </div>
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
@@ -23,6 +25,7 @@ import ControlPanel from './components/ControlPanel.vue'
 export default {
     data() {
         return {
+            grid_cols: 1,
             filename: '',
             img: null,
             white_balance: [],
@@ -50,12 +53,19 @@ export default {
 </script>
 
 <style scoped>
-.frame {
+.body-wrapper {
     width: 100%;
     height: 100%;
     display: grid;
     grid-template-columns: 1fr 272px;
     grid-template-rows: 1fr auto;
+}
+
+.frames {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    display: grid;
 }
 
 .photo-list {

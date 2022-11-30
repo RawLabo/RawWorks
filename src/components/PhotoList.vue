@@ -1,5 +1,5 @@
 <template>
-    <div class="flex wrapper" ref="wrapper" @scroll="lazyLoad" @wheel="wheel">
+    <div class="flex list-wrapper" ref="wrapper" @scroll="lazyLoad" @wheel="wheel">
         <div class="loading flex-center"
             :style="{ opacity: isLoading ? 1 : 0, 'pointer-events': isLoading ? 'auto' : 'none' }">
             Loading...
@@ -13,6 +13,7 @@
         </label>
         <div @click="loadImage(index)" v-for="(file, index) in files"
             :class="{ 'flex-center': true, thumbnail: true, active: index == activeIndex }">
+            <div class="name">{{ file.file.name }}</div>
             <img :src="file.thumb64"
                 :style="{ transform: `rotate(${file.orientation}deg)`, opacity: file.thumb64 ? 1 : 0 }" />
         </div>
@@ -204,6 +205,7 @@ export default {
 }
 
 .thumbnail {
+    position: relative;
     background: #222;
     transition: background ease 0.3s;
     margin-left: 4px;
@@ -225,8 +227,16 @@ export default {
     max-height: 128px;
     transition: opacity ease 0.3s;
 }
-
-.wrapper {
+.thumbnail .name {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+    text-shadow: 0 0 2px #111;
+    color: #eee;
+}
+.list-wrapper {
     position: relative;
     overflow: auto;
     background: #111;
