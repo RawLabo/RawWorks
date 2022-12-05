@@ -29,12 +29,10 @@ const FRAGMENT = `#version 300 es
     uniform vec3 white_balance;
     uniform mat3 color_matrix;
     uniform float gamma;
-    uniform float exposure;
     uniform float white_point;
     uniform float black_point;
     uniform float highlight_point;
     uniform float shadow_point;
-    uniform float highlight_threshold;
 
     in vec2 frag_pixel_pos;
     out vec4 output_color;
@@ -43,22 +41,24 @@ const FRAGMENT = `#version 300 es
         vec3 center = vec3(texture(image, frag_pixel_pos).rgb) / 65535.0;
 
         // color convert
-        vec3 colored =  clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
+        vec3 colored = clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
 
-        vec3 highlight_th = vec3(highlight_threshold);
-        vec3 shadow_th = vec3(1.0) - highlight_th;
+        // gamma 
+        vec3 color = pow(max(colored, 0.00001), vec3(gamma)); // gamma 0 fix
 
-        // color adjustment
-        vec3 gamma_v = pow(max(colored, 0.00001), vec3(gamma)); // gamma 0 fix
-        vec3 exposure_v = clamp(gamma_v * pow(2.0, exposure), vec3(0.0), vec3(1.0));
+        // white_level 
+        color += white_point * color; 
 
-        vec3 white_point_v = exposure_v + white_point * exposure_v;
-        vec3 highlight_v = white_point_v + highlight_point * (highlight_th - abs(white_point_v - highlight_th));
+        // black level 
+        color += black_point * (vec3(1) - color);
 
-        vec3 black_point_v = highlight_v+ black_point * (vec3(1.0) - highlight_v);
-        vec3 shadow_v = black_point_v + shadow_point * (highlight_th - abs(black_point_v - shadow_th));
+        // highlight  
+        color = mix(color, vec3(1.0), highlight_point * smoothstep(vec3(0), vec3(1), color));
+        
+        // shadow  
+        color = mix(color, vec3(0.0), -shadow_point * (vec3(1) - smoothstep(vec3(0), vec3(1), color)));
 
-        output_color = vec4(shadow_v, 1.0);
+        output_color = vec4(color, 1.0);
     }
 `;
 
@@ -165,7 +165,6 @@ export function initWebgl(canvas, width, height) {
         uniform: {
             image: gl.getUniformLocation(program, "image"),
             degree: gl.getUniformLocation(program, "degree"),
-            exposure: gl.getUniformLocation(program, "exposure"),
             white_point: gl.getUniformLocation(program, "white_point"),
             black_point: gl.getUniformLocation(program, "black_point"),
             highlight_point: gl.getUniformLocation(program, "highlight_point"),
@@ -195,7 +194,6 @@ export function render(webgl_instance, img_data, size, orientation, white_balanc
     gl.uniform1f(uniform.highlight_point, 0);
     gl.uniform1f(uniform.shadow_point, 0);
     gl.uniform1f(uniform.highlight_threshold, 0.75);
-    gl.uniform1f(uniform.exposure, 0);
     gl.uniform1f(uniform.gamma, 1 / 2.22);
     gl.uniform3fv(uniform.white_balance, [].slice.call(white_balance));
     gl.uniformMatrix3fv(uniform.color_matrix, false, [].slice.call(color_matrix));

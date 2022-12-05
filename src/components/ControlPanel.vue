@@ -10,29 +10,21 @@
         <o-slider :disabled="show_origin" v-model="shader.gamma" :step="0.01" :min="0" :max="10" :tooltip="false"
             @dblclick="shader.gamma = 2.22" />
 
-        exposure {{ shader.exposure }}
-        <o-slider :disabled="show_origin" v-model="shader.exposure" :step="0.01" :min="-3" :max="3" :tooltip="false"
-            @dblclick="shader.exposure = 0" />
+        white point {{ shader.white_point }}
+        <o-slider :disabled="show_origin" v-model="shader.white_point" :step="0.001" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.white_point = 0" />
+
+        black point {{ shader.black_point }}
+        <o-slider :disabled="show_origin" v-model="shader.black_point" :step="0.001" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.black_point = 0" />
 
         highlight {{ shader.highlight_point }}
         <o-slider :disabled="show_origin" v-model="shader.highlight_point" :step="0.01" :min="-1" :max="1"
             :tooltip="false" @dblclick="shader.highlight_point = 0" />
 
-        white point {{ shader.white_point }}
-        <o-slider :disabled="show_origin" v-model="shader.white_point" :step="0.01" :min="-1" :max="2" :tooltip="false"
-            @dblclick="shader.white_point = 0" />
-
         shadow {{ shader.shadow_point }}
         <o-slider :disabled="show_origin" v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.shadow_point = 0" />
-
-        black point {{ shader.black_point }}
-        <o-slider :disabled="show_origin" v-model="shader.black_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
-            @dblclick="shader.black_point = 0" />
-
-        highlight threshold {{ shader.highlight_threshold }}
-        <o-slider :disabled="show_origin" v-model="shader.highlight_threshold" :step="0.01" :min="0" :max="1"
-            :tooltip="false" @dblclick="shader.highlight_threshold = 0.75" />
 
         <div class="flex">
             <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
@@ -60,12 +52,10 @@ export default {
             mem: null,
             shader: {
                 gamma: 2.22,
-                exposure: 0,
                 white_point: 0,
                 black_point: 0,
                 highlight_point: 0,
                 shadow_point: 0,
-                highlight_threshold: 0.75,
                 white_balance_r: 1,
                 white_balance_b: 1
             },
@@ -169,9 +159,6 @@ export default {
         'shader.white_balance_b'(v) {
             this.setShader('white_balance', [this.shader.white_balance_r, 1.0, v], 'uniform3fv');
         },
-        'shader.exposure'(v) {
-            this.setShader('exposure', v);
-        },
         'shader.gamma'(v) {
             this.setShader('gamma', 1 / v);
         },
@@ -186,9 +173,6 @@ export default {
         },
         'shader.shadow_point'(v) {
             this.setShader('shadow_point', v);
-        },
-        'shader.highlight_threshold'(v) {
-            this.setShader('highlight_threshold', v);
         },
     }
 }
