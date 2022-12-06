@@ -26,6 +26,10 @@
         <o-slider :disabled="show_origin" v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.shadow_point = 0" />
 
+        vibrance {{ shader.vibrance }}
+        <o-slider :disabled="show_origin" v-model="shader.vibrance" :step="0.01" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.vibrance = 0" />
+
         <div class="flex">
             <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
             <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
@@ -56,6 +60,7 @@ export default {
                 black_point: 0,
                 highlight_point: 0,
                 shadow_point: 0,
+                vibrance: 0,
                 white_balance_r: 1,
                 white_balance_b: 1
             },
@@ -173,6 +178,9 @@ export default {
         },
         'shader.shadow_point'(v) {
             this.setShader('shadow_point', v);
+        },
+        'shader.vibrance'(v) {
+            this.setShader('vibrance', v);
         },
     }
 }

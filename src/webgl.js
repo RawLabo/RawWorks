@@ -33,6 +33,7 @@ const FRAGMENT = `#version 300 es
     uniform float black_point;
     uniform float highlight_point;
     uniform float shadow_point;
+    uniform float vibrance;
 
     in vec2 frag_pixel_pos;
     out vec4 output_color;
@@ -46,17 +47,28 @@ const FRAGMENT = `#version 300 es
         // gamma 
         vec3 color = pow(max(colored, 0.00001), vec3(gamma)); // gamma 0 fix
 
-        // white_level 
-        color += white_point * color; 
+        // white level
+        color += white_point * smoothstep(vec3(0), vec3(0.33), color);
 
-        // black level 
-        color += black_point * (vec3(1) - color);
+        // black level
+        color += black_point * smoothstep(vec3(1.0), vec3(0.33), color);
+    
+        // highlight
+        color += highlight_point * (vec3(1) - color) * color * color;
 
-        // highlight  
-        color = mix(color, vec3(1.0), highlight_point * smoothstep(vec3(0), vec3(1), color));
-        
-        // shadow  
-        color = mix(color, vec3(0.0), -shadow_point * (vec3(1) - smoothstep(vec3(0), vec3(1), color)));
+        // shadow
+        color += shadow_point * (vec3(1) - color) * (vec3(1) - color) * color;
+
+        // vibrance
+        float maxval = max(color.r, max(color.g, color.b));
+        float minval = min(color.r, min(color.g, color.b));
+        float saturation = (maxval - minval) / maxval;
+        vec3 saturated = vec3(
+            color.r + (color.r - (color.b + color.g) / 2.0) * vibrance,
+            color.g + (color.g - (color.r + color.b) / 2.0) * vibrance,
+            color.b + (color.b - (color.r + color.g) / 2.0) * vibrance
+        );
+        color = mix(saturated, color, saturation);
 
         output_color = vec4(color, 1.0);
     }
@@ -169,7 +181,7 @@ export function initWebgl(canvas, width, height) {
             black_point: gl.getUniformLocation(program, "black_point"),
             highlight_point: gl.getUniformLocation(program, "highlight_point"),
             shadow_point: gl.getUniformLocation(program, "shadow_point"),
-            highlight_threshold: gl.getUniformLocation(program, "highlight_threshold"),
+            vibrance: gl.getUniformLocation(program, "vibrance"),
             gamma: gl.getUniformLocation(program, "gamma"),
             white_balance: gl.getUniformLocation(program, "white_balance"),
             color_matrix: gl.getUniformLocation(program, "color_matrix")
@@ -193,8 +205,8 @@ export function render(webgl_instance, img_data, size, orientation, white_balanc
     gl.uniform1f(uniform.white_point, 0);
     gl.uniform1f(uniform.highlight_point, 0);
     gl.uniform1f(uniform.shadow_point, 0);
-    gl.uniform1f(uniform.highlight_threshold, 0.75);
     gl.uniform1f(uniform.gamma, 1 / 2.22);
+    gl.uniform1f(uniform.vibrance, 0);
     gl.uniform3fv(uniform.white_balance, [].slice.call(white_balance));
     gl.uniformMatrix3fv(uniform.color_matrix, false, [].slice.call(color_matrix));
 
