@@ -62,7 +62,7 @@ const FRAGMENT = `#version 300 es
         // vibrance
         float maxval = max(color.r, max(color.g, color.b));
         float minval = min(color.r, min(color.g, color.b));
-        float saturation = (maxval - minval) / maxval;
+        float saturation = clamp((maxval - minval) / maxval, 0.0, 1.0);
         vec3 saturated = vec3(
             color.r + (color.r - (color.b + color.g) / 2.0) * vibrance,
             color.g + (color.g - (color.r + color.b) / 2.0) * vibrance,
