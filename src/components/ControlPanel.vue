@@ -68,7 +68,7 @@ export default {
     },
     methods: {
         exportImg() {
-            if (navigator.userAgent.indexOf('Safari') > -1 && navigator.userAgent.indexOf('Chrome') == -1) {
+            if (window.isSafari) {
                 this.exportImgByWasm();
             } else {
                 this.exportImgByCanvas();

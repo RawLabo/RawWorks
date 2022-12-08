@@ -3,6 +3,8 @@ import './global.css'
 import App from './App.vue'
 import init, * as quickraw from './quickraw/quickraw'
 
+window.isSafari = navigator.userAgent.indexOf('Safari') > -1 && navigator.userAgent.indexOf('Chrome') == -1;
+
 const app = createApp(App);
 
 import { OSlider, OCheckbox, OButton } from '@oruga-ui/oruga-next';
@@ -40,7 +42,7 @@ app.mount('#app');
             id: ++id,
             method,
             args
-        }, transfer_lst);
+        }, window.isSafari ? [] : transfer_lst);
 
         return new Promise(resolve => {
             jobs[id] = resolve;
