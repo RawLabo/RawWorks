@@ -13,7 +13,8 @@ export default {
         }
     },
     watch: {
-        histogram() {
+        histogram(v) {
+            if (!v) return;
             this.drawHistogram();
             this.$emit("finish");
         },

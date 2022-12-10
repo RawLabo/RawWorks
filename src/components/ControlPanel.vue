@@ -141,7 +141,7 @@ export default {
     },
     watch: {
         better_demosaicing(v) {
-            window.quickraw.settings.better_demosaicing = v;
+            window.settings.better_demosaicing = v;
             this.$emit("change_demosaicing");
         },
         show_origin(v) {
