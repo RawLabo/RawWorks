@@ -2,9 +2,6 @@ import init, * as quickraw from './quickraw'
 let wasm;
 
 init().then(v => wasm = v);
-function disposeWasm() {
-    init(init.__wbindgen_wasm_module).then(v => wasm = v);
-}
 
 const fn_map = {
     rgba_to_jpeg(id, input, width, height) {
@@ -39,14 +36,14 @@ const fn_map = {
     load_image(id, buffer, method) {
         const img = quickraw[method](buffer);
         const image = {
-            data: new Uint16Array(wasm.memory.buffer, img.data_ptr, img.data_len).slice(),
             width: img.width,
             height: img.height,
             orientation: img.orientation,
             white_balance: img.white_balance,
             color_matrix: img.color_matrix
         };
-
+        image.data = img.data;
+        
         postMessage({ id, result: image }, [image.data.buffer]);
     }
 };
@@ -58,8 +55,6 @@ onmessage = (e) => {
             fn_map[e.data.method](e.data.id, ...e.data.args);
         } catch (err) {
             postMessage({ id: e.data.id, err: err.toString() });
-        } finally {
-            disposeWasm();
         }
     }
 }

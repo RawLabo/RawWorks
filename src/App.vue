@@ -17,6 +17,7 @@ import ControlPanel from './components/ControlPanel.vue'
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
                 @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage()" />
             <perf-timer :timer="timer" />
+            <div class="app-info">{{ app_info }}</div>
         </div>
         <photo-list ref="photo_lst_comp" class="photo-list" @prepare="prepare"
             @raw_decoded="(i, name) => { img = i; filename = name; }" />
@@ -27,6 +28,7 @@ import ControlPanel from './components/ControlPanel.vue'
 export default {
     data() {
         return {
+            app_info: __APP_INFO__,
             grid_cols: 1,
             filename: '',
             img: null,
@@ -88,5 +90,10 @@ export default {
     padding: 0.5rem;
     overflow-y: scroll;
     overflow-x: hidden;
+}
+
+.app-info {
+    color: #444;
+    padding-left: 0.1rem;
 }
 </style>
