@@ -1,9 +1,12 @@
 import { createApp } from 'vue'
 import './global.css'
 import App from './App.vue'
-import init, * as quickraw from './quickraw/quickraw'
 
 window.isSafari = navigator.userAgent.indexOf('Safari') > -1 && navigator.userAgent.indexOf('Chrome') == -1;
+
+window.settings = {
+    better_demosaicing: false
+};
 
 const app = createApp(App);
 
@@ -50,22 +53,6 @@ app.mount('#app');
     };
 })();
 
-(() => {
-    window.quickraw = {
-        fn: quickraw,
-        settings: {
-            better_demosaicing: false
-        },
-        dispose() {
-            init(init.__wbindgen_wasm_module).then(v => window.quickraw.wasm = v);
-        }
-    };
-
-    init().then(v => {
-        window.quickraw.wasm = v;
-        window.sendToWorker(['initWasm', []], init.__wbindgen_wasm_module);
-    });
-})();
 
 window.onbeforeunload = (e) => {
     e.preventDefault();

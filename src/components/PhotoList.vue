@@ -158,7 +158,7 @@ export default {
                 window.timer.file_loaded = performance.now();
 
                 const content = new Uint8Array(reader.result);
-                const method = window.quickraw.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
+                const method = window.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
                 const img = await window.sendToWorker(['load_image', [content.buffer]], content, method);
                 window.timer.raw_decoded = performance.now();
                 this.$emit("raw_decoded", img, f.name);

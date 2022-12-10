@@ -1,9 +1,11 @@
 import init, * as quickraw from './quickraw'
 let wasm;
 
+init().then(v => wasm = v);
 function disposeWasm() {
     init(init.__wbindgen_wasm_module).then(v => wasm = v);
 }
+
 const fn_map = {
     rgba_to_jpeg(id, input, width, height) {
         const row_len = width * 4;
@@ -46,14 +48,9 @@ const fn_map = {
         };
 
         postMessage({ id, result: image }, [image.data.buffer]);
-    },
-    initWasm(id, buffer) {
-        init(buffer).then(v => wasm = v);
-        postMessage({ id });
     }
 };
 
-const nondisposableMethods = new Set(['initWasm']);
 
 onmessage = (e) => {
     if (e.data.method in fn_map) {
@@ -62,9 +59,7 @@ onmessage = (e) => {
         } catch (err) {
             postMessage({ id: e.data.id, err: err.toString() });
         } finally {
-            if (!nondisposableMethods.has(e.data.method)) {
-                disposeWasm();
-            }
+            disposeWasm();
         }
     }
 }
