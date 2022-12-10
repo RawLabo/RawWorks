@@ -55,6 +55,19 @@ function getArrayF32FromWasm0(ptr, len) {
     return getFloat32Memory0().subarray(ptr / 4, ptr / 4 + len);
 }
 
+let cachedUint16Memory0 = new Uint16Array();
+
+function getUint16Memory0() {
+    if (cachedUint16Memory0.byteLength === 0) {
+        cachedUint16Memory0 = new Uint16Array(wasm.memory.buffer);
+    }
+    return cachedUint16Memory0;
+}
+
+function getArrayU16FromWasm0(ptr, len) {
+    return getUint16Memory0().subarray(ptr / 2, ptr / 2 + len);
+}
+
 let WASM_VECTOR_LEN = 0;
 
 function passArray8ToWasm0(arg, malloc) {
@@ -265,32 +278,6 @@ export class Image {
         wasm.__wbg_set_image_orientation(this.ptr, arg0);
     }
     /**
-    * @returns {number}
-    */
-    get data_ptr() {
-        const ret = wasm.__wbg_get_image_data_ptr(this.ptr);
-        return ret;
-    }
-    /**
-    * @param {number} arg0
-    */
-    set data_ptr(arg0) {
-        wasm.__wbg_set_image_data_ptr(this.ptr, arg0);
-    }
-    /**
-    * @returns {number}
-    */
-    get data_len() {
-        const ret = wasm.__wbg_get_image_data_len(this.ptr);
-        return ret >>> 0;
-    }
-    /**
-    * @param {number} arg0
-    */
-    set data_len(arg0) {
-        wasm.__wbg_set_image_data_len(this.ptr, arg0);
-    }
-    /**
     * @returns {Float32Array}
     */
     get white_balance() {
@@ -317,6 +304,23 @@ export class Image {
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayF32FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 4);
+            return v0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    * @returns {Uint16Array}
+    */
+    get data() {
+        try {
+            const ptr = this.__destroy_into_raw();
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.image_data(retptr, ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU16FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 2);
             return v0;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
@@ -431,6 +435,7 @@ function finalizeInit(instance, module) {
     init.__wbindgen_wasm_module = module;
     cachedFloat32Memory0 = new Float32Array();
     cachedInt32Memory0 = new Int32Array();
+    cachedUint16Memory0 = new Uint16Array();
     cachedUint32Memory0 = new Uint32Array();
     cachedUint8Memory0 = new Uint8Array();
 
