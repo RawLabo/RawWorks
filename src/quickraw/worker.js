@@ -23,12 +23,12 @@ const fn_map = {
     },
     calc_histogram(id, pixels) {
         const histogram_data = quickraw.calc_histogram(pixels);
-
+        pixels = null;
         postMessage({ id, result: histogram_data }, [histogram_data.buffer]);
     },
     load_thumbnail(id, buffer) {
         const thumbnail = quickraw.load_thumbnail(buffer);
-
+        buffer = null;
         const result = {
             orientation: thumbnail.orientation,
         };

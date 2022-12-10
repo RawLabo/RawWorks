@@ -8,8 +8,9 @@ import ControlPanel from './components/ControlPanel.vue'
 
 <template>
     <div class="body-wrapper">
-        <div class="frames" :style="{'grid-template-columns': `repeat(${grid_cols}, 1fr)`}">
-            <photo-frame :filename="filename" :img="img" @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
+        <div class="frames" :style="{ 'grid-template-columns': `repeat(${grid_cols}, 1fr)` }">
+            <photo-frame :filename="filename" :img="img"
+                @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         </div>
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
@@ -17,7 +18,8 @@ import ControlPanel from './components/ControlPanel.vue'
                 @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage()" />
             <perf-timer :timer="timer" />
         </div>
-        <photo-list ref="photo_lst_comp" class="photo-list" @raw_decoded="(i, name) => {img = i; filename = name;}" />
+        <photo-list ref="photo_lst_comp" class="photo-list" @prepare="prepare"
+            @raw_decoded="(i, name) => { img = i; filename = name; }" />
     </div>
 </template>
 
@@ -41,9 +43,19 @@ export default {
             }
         }
     },
+    methods: {
+        prepare() {
+            this.img = null;
+            this.histogram_data = null;
+            this.webgl_instance = null;
+        },
+    },
     watch: {
         img(v) {
-            this.white_balance = [].slice.call(v.white_balance);
+            if (v)
+                this.white_balance = [].slice.call(v.white_balance);
+            else
+                this.white_balance = [];
         }
     },
     mounted() {

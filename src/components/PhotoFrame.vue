@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { initWebgl, render, readPixelsAsync } from "../webgl";
+import { initWebgl, render } from "../webgl";
 
 let move_prev_pos = null;
 let touch_distence = 0;
@@ -132,26 +132,11 @@ export default {
       this.left_offset = 0;
       this.top_offset = 0;
       this.tip.scale = 0;
-    },
-    selectThisFrame() {
-      const gl = this.webgl_instance.gl;
-      const width = gl.canvas.width;
-      const height = gl.canvas.height;
-
-      const pixels = new Uint8Array(width * height * 4);
-      readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(pixels => {
-        window.timer.pixels_read = performance.now();
-        window.sendToWorker(['calc_histogram', [pixels.buffer]], pixels).then(data => {
-          window.timer.histogram_calced = performance.now();
-          this.$emit("histogram_load", data, this.webgl_instance);
-        });
-      })
     }
   },
   data() {
     return {
       canvas_key: 0,
-      webgl_instance: null,
       img_info: {
         width: 0,
         height: 0,
@@ -170,6 +155,11 @@ export default {
   },
   watch: {
     img(img) {
+      if (!img) {
+        this.$refs.canvas.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext();
+        return;
+      };
+
       const container_width = this.$refs.container.clientWidth;
       const container_height = this.$refs.container.clientHeight;
 
@@ -193,13 +183,11 @@ export default {
           : ["height", "clientHeight"];
       this.checkCanvasTransform();
 
-      const render_fn = () => {
-        if (this.canvas_key) {
-          this.webgl_instance = initWebgl(this.$refs.canvas, width, height);
-        }
-
+      this.canvas_key += 1;
+      this.$nextTick(() => {
+        const webgl_instance = initWebgl(this.$refs.canvas, width, height);
         render(
-          this.webgl_instance,
+          webgl_instance,
           img_data,
           [width, height],
           orientation,
@@ -209,24 +197,15 @@ export default {
             window.timer.pixels_read = performance.now();
             window.sendToWorker(['calc_histogram', [pixels.buffer]], pixels).then(data => {
               window.timer.histogram_calced = performance.now();
-              this.$emit("histogram_load", data, this.webgl_instance);
+              this.$emit("histogram_load", data, webgl_instance);
             });
           }
         );
         window.timer.rendered = performance.now();
-      };
-
-      if (window.chrome) {
-        this.canvas_key += 1; // fix large photo rendering issue in chromium based browsers
-        this.$nextTick(render_fn);
-      } else {
-        render_fn();
-      }
+      });
     },
   },
   mounted() {
-    this.webgl_instance = initWebgl(this.$refs.canvas);
-
     window.addEventListener("resize", () => {
       this.checkCanvasTransform();
     });

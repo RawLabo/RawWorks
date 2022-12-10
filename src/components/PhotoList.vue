@@ -164,6 +164,7 @@ export default {
                 this.$emit("raw_decoded", img, f.name);
                 this.isLoading = false;
             };
+            this.$emit("prepare");
             reader.readAsArrayBuffer(f);
         }
     },
