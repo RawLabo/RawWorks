@@ -3,6 +3,9 @@ import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  define: {
+    '__APP_INFO__': JSON.stringify(process.env.npm_package_name + ' v' + process.env.npm_package_version),
+  },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
