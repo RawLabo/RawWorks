@@ -87,7 +87,7 @@ export default {
             const pixels = new Uint8Array(width * height * 4);
             const gl = this.webgl_instance.gl;
             readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
-                .then(pixels => window.sendToWorker(['rgba_to_jpeg', [pixels.buffer]], pixels, width, height))
+                .then(pixels => window.sendToWorker('rgba_to_jpeg', pixels, width, height))
                 .then(jpeg => {
                     const blob = new Blob([jpeg.buffer]);
                     const link = document.createElement('a');
@@ -120,7 +120,7 @@ export default {
             if (this.prevent_shader_update) return;
 
             timeout = updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
-                window.sendToWorker(['calc_histogram', [pixels.buffer]], pixels).then(data => {
+                window.sendToWorker('calc_histogram', pixels).then(data => {
                     this.$emit("histogram_load", data);
                 });
             }, timeout, lag);
