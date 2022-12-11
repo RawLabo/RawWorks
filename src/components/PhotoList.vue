@@ -99,7 +99,7 @@ export default {
                 const buffer = reader.result;
                 this.readFilesOneByOne();
 
-                window.sendToWorker(['load_thumbnail', [buffer]], new Uint8Array(buffer)).then(thumb => {
+                window.sendToWorker('load_thumbnail', new Uint8Array(buffer)).then(thumb => {
                     const data = thumb.data;
                     const orientation = thumb.orientation;
                     const blob = new Blob([data]);
@@ -159,7 +159,7 @@ export default {
 
                 const content = new Uint8Array(reader.result);
                 const method = window.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
-                const img = await window.sendToWorker(['load_image', [content.buffer]], content, method);
+                const img = await window.sendToWorker('load_image', content, method);
                 window.timer.raw_decoded = performance.now();
                 this.$emit("raw_decoded", img, f.name);
                 this.isLoading = false;

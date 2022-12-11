@@ -40,12 +40,12 @@ app.mount('#app');
         }
     };
 
-    window.sendToWorker = ([method, transfer_lst], ...args) => {
+    window.sendToWorker = (method, ...args) => {
         worker.postMessage({
             id: ++id,
             method,
             args
-        }, window.isSafari ? [] : transfer_lst);
+        });
 
         return new Promise(resolve => {
             jobs[id] = resolve;
