@@ -232,7 +232,8 @@ export function updateUniform(webgl_instance, uniform_fn, uniform_name, data, pi
         const prog = () => {
             const width = gl.canvas.width;
             const height = gl.canvas.height;
-            const pixels = new Uint8Array(width * height * 4);
+            const buffer = new SharedArrayBuffer(width * height * 4);
+            const pixels = new Uint8Array(buffer);
             readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(x => {
                 pixels_callback(x)
             })

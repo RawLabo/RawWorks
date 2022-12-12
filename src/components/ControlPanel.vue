@@ -84,7 +84,8 @@ export default {
             const width = canvas.width;
             const height = canvas.height;
 
-            const pixels = new Uint8Array(width * height * 4);
+            const buffer = new SharedArrayBuffer(width * height * 4);
+            const pixels = new Uint8Array(buffer);
             const gl = this.webgl_instance.gl;
             readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
                 .then(pixels => window.sendToWorker('rgba_to_jpeg', pixels, width, height))
