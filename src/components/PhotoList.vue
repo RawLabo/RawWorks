@@ -77,7 +77,9 @@ export default {
             const width = this.$refs.wrapper.clientWidth;
             const scroll_left = this.$refs.wrapper.scrollLeft - this.$refs.uploader.clientWidth;
             const thumb_width = 128 + 4;
-            const left_bound = parseInt(scroll_left / thumb_width);
+            let left_bound = parseInt(scroll_left / thumb_width);
+            left_bound = left_bound < 0 ? 0 : left_bound;
+             
             let right_bound = parseInt((scroll_left + width) / thumb_width);
             if (right_bound >= this.files.length)
                 right_bound = this.files.length - 1;
