@@ -194,9 +194,7 @@ export default {
           white_balance,
           color_matrix,
           (pixels) => {
-            window.timer.pixels_read = performance.now();
             window.sendToWorker('calc_histogram', pixels).then(data => {
-              window.timer.histogram_calced = performance.now();
               this.$emit("histogram_load", data, webgl_instance);
             });
           }

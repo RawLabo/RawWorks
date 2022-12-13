@@ -1,6 +1,6 @@
 <template>
     <div>
-        <table v-if="timer.histogram_calced > timer.file_to_load">
+        <table v-if="timer.raw_decoded > timer.file_to_load">
             <tr>
                 <td class="title">File load:</td>
                 <td>{{ Math.round(timer.file_loaded - timer.file_to_load) }}ms</td>
@@ -12,14 +12,6 @@
             <tr>
                 <td class="title">Render:</td>
                 <td>{{ Math.round(timer.rendered - timer.raw_decoded) }}ms</td>
-            </tr>
-            <tr>
-                <td class="title">Pixels read:</td>
-                <td>{{ Math.round(timer.pixels_read - timer.rendered) }}ms</td>
-            </tr>
-            <tr>
-                <td class="title">Histogram calc:</td>
-                <td>{{ Math.round(timer.histogram_calced - timer.pixels_read) }}ms</td>
             </tr>
         </table>
     </div>

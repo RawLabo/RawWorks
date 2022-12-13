@@ -152,15 +152,6 @@ export function initWebgl(canvas, width, height) {
     const program = genProgram(gl, VERTEX, FRAGMENT);
     gl.useProgram(program);
 
-    setXYin(program, gl, "corner_pos", new Int8Array([
-        -1, -1,
-        1, -1,
-        -1, 1,
-        -1, 1,
-        1, -1,
-        1, 1
-    ]));
-
     setXYin(program, gl, "pixel_pos", new Int8Array([
         0, 0,
         1, 0,
@@ -174,6 +165,7 @@ export function initWebgl(canvas, width, height) {
 
     return {
         gl,
+        program,
         uniform: {
             image: gl.getUniformLocation(program, "image"),
             degree: gl.getUniformLocation(program, "degree"),
@@ -189,8 +181,40 @@ export function initWebgl(canvas, width, height) {
     }
 }
 
+function renderWithPixelReading(program, gl, width, height, pixels_callback) {
+    setXYin(program, gl, "corner_pos", new Float32Array([
+        -.1, -.1,
+        .1, -.1,
+        -.1, .1,
+        -.1, .1,
+        .1, -.1,
+        .1, .1
+    ]), gl.FLOAT);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    const w = parseInt(width * 0.1);
+    const h = parseInt(height * 0.1);
+    const buffer = new SharedArrayBuffer(w * h * 4);
+    const pixels = new Uint8Array(buffer);
+    gl.readPixels(width / 2 - w / 2, height / 2 - h / 2, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    
+    setXYin(program, gl, "corner_pos", new Int8Array([
+        -1, -1,
+        1, -1,
+        -1, 1,
+        -1, 1,
+        1, -1,
+        1, 1,
+    ]));
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    pixels_callback(pixels);
+}
+
 export function render(webgl_instance, img_data, size, orientation, white_balance, color_matrix, pixels_callback) {
-    const { gl, uniform } = webgl_instance;
+    const { gl, uniform, program } = webgl_instance;
     const [width, height] = size;
 
     gl.canvas.width = width;
@@ -210,43 +234,18 @@ export function render(webgl_instance, img_data, size, orientation, white_balanc
     gl.uniform3fv(uniform.white_balance, [].slice.call(white_balance));
     gl.uniformMatrix3fv(uniform.color_matrix, false, [].slice.call(color_matrix));
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-    if (pixels_callback) {
-        const buffer = new SharedArrayBuffer(width * height * 4);
-        const pixels = new Uint8Array(buffer);
-        readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(x => {
-            pixels_callback(x)
-        })
-    }
+    renderWithPixelReading(program, gl, width, height, pixels_callback);
 }
 
-export function updateUniform(webgl_instance, uniform_fn, uniform_name, data, pixels_callback, timeout, lag) {
-    const { gl, uniform } = webgl_instance;
+export function updateUniform(webgl_instance, uniform_fn, uniform_name, data, pixels_callback) {
+    const { gl, uniform, program } = webgl_instance;
 
     gl[uniform_fn](uniform[uniform_name], data);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    const width = gl.canvas.width;
+    const height = gl.canvas.height;
 
-    if (pixels_callback) {
-        const prog = () => {
-            const width = gl.canvas.width;
-            const height = gl.canvas.height;
-            const buffer = new SharedArrayBuffer(width * height * 4);
-            const pixels = new Uint8Array(buffer);
-            readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels).then(x => {
-                pixels_callback(x)
-            })
-        };
-        if (timeout) {
-            clearTimeout(timeout);
-            return setTimeout(() => {
-                prog();
-            }, lag);
-        } else {
-            prog();
-        }
-    }
+    renderWithPixelReading(program, gl, width, height, pixels_callback);
 }
 
 

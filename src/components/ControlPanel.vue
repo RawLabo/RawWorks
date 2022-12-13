@@ -42,9 +42,6 @@
 <script>
 import { updateUniform, readPixelsAsync } from "../webgl";
 
-let timeout = 1;
-const lag = 250;
-
 export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
     data() {
@@ -120,11 +117,11 @@ export default {
         setShader(name, value, method) {
             if (this.prevent_shader_update) return;
 
-            timeout = updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
+            updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
                 window.sendToWorker('calc_histogram', pixels).then(data => {
                     this.$emit("histogram_load", data);
                 });
-            }, timeout, lag);
+            });
         },
         resetShader(prevent_shader_update) {
             this.prevent_shader_update = !!prevent_shader_update;
@@ -155,7 +152,7 @@ export default {
                 this.mem = null;
             }
         },
-        'timer.histogram_calced'() {
+        'webgl_instance'() {
             // this is the actual init after each new image loaded
             this.resetShader(true);
         },
