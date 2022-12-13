@@ -40,8 +40,6 @@ export default {
                 file_loaded: 0,
                 raw_decoded: 0,
                 rendered: 0,
-                pixels_read: 0,
-                histogram_calced: 0,
             }
         }
     },
