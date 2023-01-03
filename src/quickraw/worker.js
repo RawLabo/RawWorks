@@ -1,4 +1,6 @@
 import init, * as quickraw from './quickraw'
+import { initSync } from './quickraw'
+
 let wasm;
 
 init().then(v => wasm = v);
@@ -54,6 +56,7 @@ onmessage = (e) => {
         try {
             fn_map[e.data.method](e.data.id, ...e.data.args);
         } catch (err) {
+            wasm = initSync(init.__wbindgen_wasm_module);
             postMessage({ id: e.data.id, err: err.toString() });
         }
     }
