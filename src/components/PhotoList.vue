@@ -11,7 +11,7 @@
             Drop to + folder
             <input type="file" title="" multiple @change="fileChange" @drop="fileChange" />
         </label>
-        <div @click="loadImage(index)" v-for="(file, index) in files"
+        <div :title="file.file.name" @click="loadImage(index)" v-for="(file, index) in files"
             :class="{ 'flex-center': true, thumbnail: true, active: index == activeIndex }">
             <div class="name">{{ file.file.name }}</div>
             <img :src="file.thumb64"
@@ -47,7 +47,7 @@ async function readEntry(item, result) {
             len = entries.length;
             total_entries.push(...entries);
         } while (len > 0);
-        
+
         for (let i = 0; i < total_entries.length; i++) {
             await readEntry(total_entries[i], result);
         }
@@ -79,7 +79,7 @@ export default {
             const thumb_width = 128 + 4;
             let left_bound = parseInt(scroll_left / thumb_width);
             left_bound = left_bound < 0 ? 0 : left_bound;
-             
+
             let right_bound = parseInt((scroll_left + width) / thumb_width);
             if (right_bound >= this.files.length)
                 right_bound = this.files.length - 1;
@@ -230,6 +230,7 @@ export default {
     max-height: 128px;
     transition: opacity ease 0.3s;
 }
+
 .thumbnail .name {
     position: absolute;
     bottom: 0;
@@ -238,7 +239,11 @@ export default {
     z-index: 1;
     text-shadow: 0 0 2px #111;
     color: #eee;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
+
 .list-wrapper {
     position: relative;
     overflow: auto;
