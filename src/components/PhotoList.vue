@@ -21,7 +21,7 @@
 </template>
 
 <script>
-const EXTENSIONS = new Set(['arw']);
+const EXTENSIONS = new Set(['arw', 'nef', 'rw2', 'crw', 'cr2', 'cr3', 'orf', 'nrw', 'dng', 'raf']);
 function checkExtension(name) {
     name = name.toLowerCase();
     if (name[0] == '.') return false;
@@ -156,15 +156,18 @@ export default {
             const f = this.files[index].file;
 
             const reader = new FileReader();
-            reader.onload = async () => {
+            reader.onload = () => {
                 window.timer.file_loaded = performance.now();
 
                 const content = new Uint8Array(reader.result);
                 const method = window.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
-                const img = await window.sendToWorker('load_image', content, method);
-                window.timer.raw_decoded = performance.now();
-                this.$emit("raw_decoded", img, f.name);
-                this.isLoading = false;
+                window.sendToWorker('load_image', content, method)
+                .then(img => {
+                    this.$emit("raw_decoded", img, f.name);
+                }).finally(() => {
+                    window.timer.raw_decoded = performance.now();
+                    this.isLoading = false;
+                });
             };
             this.$emit("prepare");
             reader.readAsArrayBuffer(f);

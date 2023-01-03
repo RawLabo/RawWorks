@@ -31,9 +31,11 @@ app.mount('#app');
     worker.onmessage = (e) => {
         if (e.data.id in jobs) {
             if (e.data.err) {
-                alert(e.data.err);
+                const additional_err = e.data.err.toString().indexOf('unreachable') > -1 ? '\nThis raw file is not yet supported.' : '';
+                alert(e.data.err + additional_err);
+                jobs[e.data.id].reject(e.data.err);
             } else {
-                jobs[e.data.id](e.data.result);
+                jobs[e.data.id].resolve(e.data.result);
             }
 
             delete jobs[e.data.id];
@@ -47,8 +49,8 @@ app.mount('#app');
             args
         });
 
-        return new Promise(resolve => {
-            jobs[id] = resolve;
+        return new Promise((resolve, reject) => {
+            jobs[id] = {resolve, reject};
         });
     };
 })();
