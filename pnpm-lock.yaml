@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@oruga-ui/oruga-next': ^0.5.8
+  '@vitejs/plugin-basic-ssl': ^1.0.1
   '@vitejs/plugin-vue': ^3.2.0
   vite: ^3.2.0
   vite-plugin-pwa: ^0.13.3
@@ -12,6 +13,7 @@ dependencies:
   vue: 3.2.41
 
 devDependencies:
+  '@vitejs/plugin-basic-ssl': 1.0.1_vite@3.2.1
   '@vitejs/plugin-vue': 3.2.0_vite@3.2.1+vue@3.2.41
   vite: 3.2.1
   vite-plugin-pwa: 0.13.3_vite@3.2.1
@@ -1369,6 +1371,15 @@ packages:
 
   /@types/trusted-types/2.0.2:
     resolution: {integrity: sha512-F5DIZ36YVLE+PN+Zwws4kJogq47hNgX3Nx6WyDJ3kcplxyke3XIzB8uK5n/Lpm1HBsbGzd6nmGehL8cPekP+Tg==}
+    dev: true
+
+  /@vitejs/plugin-basic-ssl/1.0.1_vite@3.2.1:
+    resolution: {integrity: sha512-pcub+YbFtFhaGRTo1832FQHQSHvMrlb43974e2eS8EKleR3p1cDdkJFPci1UhwkEf1J9Bz+wKBSzqpKp7nNj2A==}
+    engines: {node: '>=14.6.0'}
+    peerDependencies:
+      vite: ^3.0.0 || ^4.0.0
+    dependencies:
+      vite: 3.2.1
     dev: true
 
   /@vitejs/plugin-vue/3.2.0_vite@3.2.1+vue@3.2.41:
