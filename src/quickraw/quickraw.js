@@ -196,26 +196,94 @@ export function encode_to_jpeg(pixels_ptr, width, height) {
 
 /**
 * @param {Uint8Array} buffer
-* @returns {Thumbnail}
+* @returns {ExifWithThumbnail}
 */
-export function load_thumbnail(buffer) {
+export function load_exif_with_thumbnail(buffer) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passArray8ToWasm0(buffer, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.load_thumbnail(retptr, ptr0, len0);
+        wasm.load_exif_with_thumbnail(retptr, ptr0, len0);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
         if (r2) {
             throw takeObject(r1);
         }
-        return Thumbnail.__wrap(r0);
+        return ExifWithThumbnail.__wrap(r0);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
 
+/**
+*/
+export class ExifWithThumbnail {
+
+    static __wrap(ptr) {
+        const obj = Object.create(ExifWithThumbnail.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_exifwiththumbnail_free(ptr);
+    }
+    /**
+    * @returns {number}
+    */
+    get orientation() {
+        const ret = wasm.__wbg_get_exifwiththumbnail_orientation(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set orientation(arg0) {
+        wasm.__wbg_set_exifwiththumbnail_orientation(this.ptr, arg0);
+    }
+    /**
+    * @returns {Uint8Array}
+    */
+    get thumbnail() {
+        try {
+            const ptr = this.__destroy_into_raw();
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.exifwiththumbnail_thumbnail(retptr, ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 1);
+            return v0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    * @returns {string}
+    */
+    get exif() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.exifwiththumbnail_exif(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return getStringFromWasm0(r0, r1);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+            wasm.__wbindgen_free(r0, r1);
+        }
+    }
+}
 /**
 */
 export class Image {
@@ -242,14 +310,14 @@ export class Image {
     * @returns {number}
     */
     get width() {
-        const ret = wasm.__wbg_get_image_width(this.ptr);
+        const ret = wasm.__wbg_get_exifwiththumbnail_orientation(this.ptr);
         return ret >>> 0;
     }
     /**
     * @param {number} arg0
     */
     set width(arg0) {
-        wasm.__wbg_set_image_width(this.ptr, arg0);
+        wasm.__wbg_set_exifwiththumbnail_orientation(this.ptr, arg0);
     }
     /**
     * @returns {number}
@@ -321,59 +389,6 @@ export class Image {
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayU16FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 2);
-            return v0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-}
-/**
-*/
-export class Thumbnail {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Thumbnail.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_thumbnail_free(ptr);
-    }
-    /**
-    * @returns {number}
-    */
-    get orientation() {
-        const ret = wasm.__wbg_get_image_width(this.ptr);
-        return ret;
-    }
-    /**
-    * @param {number} arg0
-    */
-    set orientation(arg0) {
-        wasm.__wbg_set_image_width(this.ptr, arg0);
-    }
-    /**
-    * @returns {Uint8Array}
-    */
-    get data() {
-        try {
-            const ptr = this.__destroy_into_raw();
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.thumbnail_data(retptr, ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU8FromWasm0(r0, r1).slice();
-            wasm.__wbindgen_free(r0, r1 * 1);
             return v0;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);

@@ -95,7 +95,8 @@ export default {
                     setTimeout(() => {
                         this.generating_exports = false;
                     }, 300);
-                });
+                })
+                .catch(err => alert(err));
         },
         exportImgByCanvas() {
             if (this.generating_exports) return;

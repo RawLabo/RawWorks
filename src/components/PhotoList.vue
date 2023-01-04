@@ -11,7 +11,7 @@
             Drop to + folder
             <input type="file" title="" multiple @change="fileChange" @drop="fileChange" />
         </label>
-        <div :title="file.file.name" @click="loadImage(index)" v-for="(file, index) in files"
+        <div :title="file.title" @click="loadImage(index)" v-for="(file, index) in files"
             :class="{ 'flex-center': true, thumbnail: true, active: index == activeIndex }">
             <div class="name">{{ file.file.name }}</div>
             <img :src="file.thumb64"
@@ -101,11 +101,11 @@ export default {
                 const buffer = reader.result;
                 this.readFilesOneByOne();
 
-                window.sendToWorker('load_thumbnail', new Uint8Array(buffer)).then(thumb => {
-                    const data = thumb.data;
-                    const orientation = thumb.orientation;
-                    const blob = new Blob([data]);
+                window.sendToWorker('load_exif_with_thumbnail', new Uint8Array(buffer)).then(info => {
+                    const orientation = info.orientation;
+                    const blob = new Blob([info.thumb]);
                     this.files[index].orientation = orientation;
+                    this.files[index].title = `${f.name}\n${info.exif.make} / ${info.exif.model}`;
                     this.files[index].thumb64 = URL.createObjectURL(blob);
                 });
             };
@@ -164,6 +164,8 @@ export default {
                 window.sendToWorker('load_image', content, method)
                 .then(img => {
                     this.$emit("raw_decoded", img, f.name);
+                }).catch(err => {
+                    alert(err);
                 }).finally(() => {
                     window.timer.raw_decoded = performance.now();
                     this.isLoading = false;

@@ -32,8 +32,7 @@ app.mount('#app');
         if (e.data.id in jobs) {
             if (e.data.err) {
                 const additional_err = e.data.err.toString().indexOf('unreachable') > -1 ? '\nThis raw file is not yet supported.' : '';
-                alert(e.data.err + additional_err);
-                jobs[e.data.id].reject(e.data.err);
+                jobs[e.data.id].reject(e.data.err + additional_err);
             } else {
                 jobs[e.data.id].resolve(e.data.result);
             }
