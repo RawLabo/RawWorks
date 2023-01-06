@@ -11,7 +11,7 @@
             Drop to + folder
             <input type="file" title="" multiple @change="fileChange" @drop="fileChange" />
         </label>
-        <div @click="loadImage(index)" v-for="(file, index) in files"
+        <div :title="file.title" @click="loadImage(index)" v-for="(file, index) in files"
             :class="{ 'flex-center': true, thumbnail: true, active: index == activeIndex }">
             <div class="name">{{ file.file.name }}</div>
             <img :src="file.thumb64"
@@ -21,7 +21,7 @@
 </template>
 
 <script>
-const EXTENSIONS = new Set(['arw']);
+const EXTENSIONS = new Set(['arw', 'nef', 'rw2', 'crw', 'cr2', 'cr3', 'orf', 'nrw', 'dng', 'raf']);
 function checkExtension(name) {
     name = name.toLowerCase();
     if (name[0] == '.') return false;
@@ -47,7 +47,7 @@ async function readEntry(item, result) {
             len = entries.length;
             total_entries.push(...entries);
         } while (len > 0);
-        
+
         for (let i = 0; i < total_entries.length; i++) {
             await readEntry(total_entries[i], result);
         }
@@ -79,7 +79,7 @@ export default {
             const thumb_width = 128 + 4;
             let left_bound = parseInt(scroll_left / thumb_width);
             left_bound = left_bound < 0 ? 0 : left_bound;
-             
+
             let right_bound = parseInt((scroll_left + width) / thumb_width);
             if (right_bound >= this.files.length)
                 right_bound = this.files.length - 1;
@@ -101,11 +101,11 @@ export default {
                 const buffer = reader.result;
                 this.readFilesOneByOne();
 
-                window.sendToWorker('load_thumbnail', new Uint8Array(buffer)).then(thumb => {
-                    const data = thumb.data;
-                    const orientation = thumb.orientation;
-                    const blob = new Blob([data]);
+                window.sendToWorker('load_exif_with_thumbnail', new Uint8Array(buffer)).then(info => {
+                    const orientation = info.orientation;
+                    const blob = new Blob([info.thumb]);
                     this.files[index].orientation = orientation;
+                    this.files[index].title = `${f.name}\n${info.exif.make} / ${info.exif.model}`;
                     this.files[index].thumb64 = URL.createObjectURL(blob);
                 });
             };
@@ -156,15 +156,20 @@ export default {
             const f = this.files[index].file;
 
             const reader = new FileReader();
-            reader.onload = async () => {
+            reader.onload = () => {
                 window.timer.file_loaded = performance.now();
 
                 const content = new Uint8Array(reader.result);
                 const method = window.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
-                const img = await window.sendToWorker('load_image', content, method);
-                window.timer.raw_decoded = performance.now();
-                this.$emit("raw_decoded", img, f.name);
-                this.isLoading = false;
+                window.sendToWorker('load_image', content, method)
+                .then(img => {
+                    window.timer.raw_decoded = performance.now();
+                    this.$emit("raw_decoded", img, f.name);
+                }).catch(err => {
+                    alert(err);
+                }).finally(() => {
+                    this.isLoading = false;
+                });
             };
             this.$emit("prepare");
             reader.readAsArrayBuffer(f);
@@ -230,6 +235,7 @@ export default {
     max-height: 128px;
     transition: opacity ease 0.3s;
 }
+
 .thumbnail .name {
     position: absolute;
     bottom: 0;
@@ -238,7 +244,11 @@ export default {
     z-index: 1;
     text-shadow: 0 0 2px #111;
     color: #eee;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
+
 .list-wrapper {
     position: relative;
     overflow: auto;

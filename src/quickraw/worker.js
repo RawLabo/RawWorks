@@ -1,4 +1,6 @@
 import init, * as quickraw from './quickraw'
+import { initSync } from './quickraw'
+
 let wasm;
 
 init().then(v => wasm = v);
@@ -23,15 +25,23 @@ const fn_map = {
         pixels = null;
         postMessage({ id, result: histogram_data }, [histogram_data.buffer]);
     },
-    load_thumbnail(id, buffer) {
-        const thumbnail = quickraw.load_thumbnail(buffer);
+    load_exif_with_thumbnail(id, buffer) {
+        const exif_with_thumbnail = quickraw.load_exif_with_thumbnail(buffer);
         buffer = null;
-        const result = {
-            orientation: thumbnail.orientation,
-        };
-        result.data = thumbnail.data;
+        const exif = {};
+        exif_with_thumbnail.exif.split('\n').forEach(line => {
+            if (!line.trim()) return;
 
-        postMessage({ id, result }, [result.data.buffer]);
+            let [field, value] = line.trim().split(':');
+            value = value.split('/').map(x => x.trim());
+            exif[field.trim()] = value;
+        });
+        const result = {
+            orientation: exif_with_thumbnail.orientation,
+            exif
+        };
+        result.thumb = exif_with_thumbnail.thumbnail;
+        postMessage({ id, result }, [result.thumb.buffer]);
     },
     load_image(id, buffer, method) {
         const img = quickraw[method](buffer);
@@ -54,6 +64,7 @@ onmessage = (e) => {
         try {
             fn_map[e.data.method](e.data.id, ...e.data.args);
         } catch (err) {
+            wasm = initSync(init.__wbindgen_wasm_module);
             postMessage({ id: e.data.id, err: err.toString() });
         }
     }
