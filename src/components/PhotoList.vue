@@ -163,11 +163,11 @@ export default {
                 const method = window.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
                 window.sendToWorker('load_image', content, method)
                 .then(img => {
+                    window.timer.raw_decoded = performance.now();
                     this.$emit("raw_decoded", img, f.name);
                 }).catch(err => {
                     alert(err);
                 }).finally(() => {
-                    window.timer.raw_decoded = performance.now();
                     this.isLoading = false;
                 });
             };
