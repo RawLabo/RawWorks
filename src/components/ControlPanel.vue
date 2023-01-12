@@ -35,12 +35,31 @@
             <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
         </div>
 
-        <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportImg">↓ Export</o-button>
+        <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export JPG</o-button>
+        <div class="export-wrapper">
+            rating {{ rating }}
+            <o-slider v-model="rating" :step="1" :min="1" :max="5" :tooltip="false" rounded variant="info" />
+            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportAdobeXMP">↓ Adobe XMP</o-button>
+            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportDarktableXMP">↓ darktable XMP</o-button>
+            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportPP3">↓ PP3</o-button>
+        </div>
     </div>
 </template>
 
 <script>
 import { updateUniform, readPixelsAsync } from "../webgl";
+
+const gen_pp3 = r => `[General]
+Rank=${r}`;
+const gen_xmp = r => `<?xml version="1.0" encoding="UTF-8"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="RawWorks">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about=""
+    xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+    xmp:Rating="${r}">
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>`;
 
 export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
@@ -51,6 +70,7 @@ export default {
             better_demosaicing: false,
             generating_exports: false,
             mem: null,
+            rating: 3,
             shader: {
                 gamma: 2.22,
                 white_point: 0,
@@ -64,6 +84,29 @@ export default {
         }
     },
     methods: {
+        exportSideCar(fn, suffix_fn) {
+            const canvas = document.querySelector('canvas.selected');
+            const filename = canvas.getAttribute('data-filename');
+
+            const content = fn(this.rating);
+
+            const blob = new Blob([content], {
+                type: 'text/plain'
+            });
+            const link = document.createElement('a');
+            link.download = suffix_fn(filename);
+            link.href = window.URL.createObjectURL(blob);
+            link.click();
+        },
+        exportAdobeXMP() {
+            this.exportSideCar(gen_xmp, name => name + '.xmp');
+        },
+        exportDarktableXMP() {
+            this.exportSideCar(gen_xmp, name => name.substring(0, name.lastIndexOf('.')) + '.xmp');
+        },
+        exportPP3() {
+            this.exportSideCar(gen_pp3, name => name + '.pp3');
+        },
         exportImg() {
             if (window.isSafari) {
                 this.exportImgByWasm();
@@ -156,6 +199,7 @@ export default {
         'webgl_instance'() {
             // this is the actual init after each new image loaded
             this.resetShader(true);
+            this.rating = 3;
         },
         'shader.white_balance_r'(v) {
             this.setShader('white_balance', [v, 1.0, this.shader.white_balance_b], 'uniform3fv');
@@ -198,8 +242,26 @@ export default {
     align-items: center;
 }
 
+.export-wrapper {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 8px;
+    margin: 8px 0;
+    padding-bottom: 4px;
+}
+.export-wrapper .export-btn {
+    margin-bottom: .5rem;
+}
+
+.export-wrapper .title {
+    margin-top: .75rem;
+}
+
+.export-jpg {
+    margin-top: .5rem;
+}
 .export-btn {
-    margin-top: 0.5rem;
+    margin-right: .5rem;
 }
 
 a.disabled {

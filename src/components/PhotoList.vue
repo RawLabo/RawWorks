@@ -6,10 +6,15 @@
         </div>
         <label ref="uploader" :class="{ uploader: true, 'flex-center': true, active: isDraggingOver }"
             @dragover="isDraggingOver = true" @dragleave="isDraggingOver = false">
-            Click to + raw files
+            Add {{ shiftKeyPressed? 'folder': 'raw files' }}
             <br>
-            Drop to + folder
-            <input type="file" title="" multiple @change="fileChange" @drop="fileChange" />
+            <br>
+            or
+            <br>
+            <br>
+            Drop folder here
+            <input type="file" title="" multiple :webkitdirectory="shiftKeyPressed" @change="fileChange"
+                @drop="fileChange" />
         </label>
         <div :title="file.title" @click="loadImage(index)" v-for="(file, index) in files"
             :class="{ 'flex-center': true, thumbnail: true, active: index == activeIndex }">
@@ -60,12 +65,20 @@ const readSets = new Set();
 export default {
     data() {
         return {
+            shiftKeyPressed: false,
             isDraggingOver: false,
             isLoading: false,
             activeIndex: -1,
             files: [],
             filesIndexToRead: []
         }
+    },
+    mounted() {
+        window.addEventListener("keypress", e => {
+            if (e.key === 'F') {
+                this.shiftKeyPressed = !this.shiftKeyPressed;
+            }
+        });
     },
     methods: {
         wheel(e) {
@@ -162,14 +175,14 @@ export default {
                 const content = new Uint8Array(reader.result);
                 const method = window.settings.better_demosaicing ? 'load_image_enhanced' : 'load_image';
                 window.sendToWorker('load_image', content, method)
-                .then(img => {
-                    window.timer.raw_decoded = performance.now();
-                    this.$emit("raw_decoded", img, f.name);
-                }).catch(err => {
-                    alert(err);
-                }).finally(() => {
-                    this.isLoading = false;
-                });
+                    .then(img => {
+                        window.timer.raw_decoded = performance.now();
+                        this.$emit("raw_decoded", img, f.name);
+                    }).catch(err => {
+                        alert(err);
+                    }).finally(() => {
+                        this.isLoading = false;
+                    });
             };
             this.$emit("prepare");
             reader.readAsArrayBuffer(f);
@@ -190,11 +203,13 @@ export default {
     min-height: 128px;
     text-align: center;
     background: #171717;
+    transition: font-variation-settings 0.2s;
 }
 
 .uploader:hover {
     color: #bbb;
     border: 1px dotted #555;
+    font-variation-settings: 'slnt' -10, 'wght' 900;
 }
 
 .uploader input {
@@ -220,14 +235,27 @@ export default {
     cursor: pointer;
     height: 128px;
     min-width: 128px;
+    opacity: 0.75;
+    transition: opacity 0.3s;
 }
 
 .thumbnail:hover {
     background: #333;
+    opacity: 1;
 }
 
 .thumbnail.active {
     background: #5a57;
+    opacity: 1;
+}
+
+.thumbnail:hover .name {
+    font-variation-settings: 'slnt' 0, 'wght' 600;
+}
+
+.thumbnail.active .name {
+    font-variation-settings: 'slnt' -10, 'wght' 600;
+    color: #fff;
 }
 
 .thumbnail img {
@@ -238,7 +266,7 @@ export default {
 
 .thumbnail .name {
     position: absolute;
-    bottom: 0;
+    bottom: 2px;
     width: 100%;
     text-align: center;
     z-index: 1;
@@ -247,6 +275,8 @@ export default {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    transition: font-variation-settings 0.2s;
+    font-variation-settings: 'slnt' 0, 'wght' 400;
 }
 
 .list-wrapper {
