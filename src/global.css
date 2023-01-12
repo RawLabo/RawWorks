@@ -65,7 +65,9 @@ body {
 body .o-slide__track {
     background: #333;
 }
-
+body .o-slide__fill--info {
+    background: #b6b91c;
+}
 ::-webkit-scrollbar {
     width: 3px;
     height: 3px;
