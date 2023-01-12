@@ -43,6 +43,12 @@ body {
     align-content: center;
     justify-content: center;
 }
+.inline-flex-center {
+    display: inline-flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+}
 
 .flex {
     display: flex;

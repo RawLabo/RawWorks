@@ -2,12 +2,12 @@
   <div ref="container" class="container flex-center" @wheel="zoom" @gesturestart="touchZoomStart" @gesturechange="zoom"
     @touchstart="moveStart" @touchmove="move" @touchend="moveEnd" @mousedown="moveStart" @mousemove="move"
     @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom($event, 1)">
-    <canvas :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
+    <canvas v-if="img" :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
       transition,
     }"></canvas>
-    <div class="tip">{{ Math.round(tip.scale * 100) }}%</div>
+    <div class="tip" v-if="img">{{ Math.round(tip.scale * 100) }}%</div>
   </div>
 </template>
 
