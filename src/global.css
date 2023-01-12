@@ -1,13 +1,13 @@
 @font-face {
-    font-family: 'Source Sans Pro';
+    font-family: 'Inter';
     font-style: normal;
-    font-weight: 400;
-    font-display: block;
-    src: url(sourcesanspro.woff2) format('woff2');
+    font-weight: 600;
+    src: url(inter.woff2) format('woff2');
 }
 
 * {
-    font-family: 'Source Sans Pro', sans-serif;
+    font-family: 'Inter', sans-serif;
+    font-variation-settings: 'slnt' 0, 'wght' 600;
     padding: 0;
     margin: 0;
     color: #bbb;
@@ -16,7 +16,7 @@
 }
 
 html {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 html,
