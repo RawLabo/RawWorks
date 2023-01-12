@@ -1,25 +1,25 @@
 <template>
-    <div class="flex list-wrapper" ref="wrapper" @scroll="lazyLoad" @wheel="wheel">
+    <div class="list-wrapper" ref="wrapper" @scroll="lazyLoad" @wheel="wheel">
         <div class="loading flex-center"
             :style="{ opacity: isLoading ? 1 : 0, 'pointer-events': isLoading ? 'auto' : 'none' }">
             Loading...
         </div>
-        <label ref="uploader" :class="{ uploader: true, 'flex-center': true, active: isDraggingOver }"
+        <label ref="uploader" :class="{ uploader: true, 'inline-flex-center': true, active: isDraggingOver }"
             @dragover="isDraggingOver = true" @dragleave="isDraggingOver = false">
-            Add {{ shiftKeyPressed? 'folder': 'raw files' }}
+            Add {{ openFolderByDefault? 'folder': 'raw files' }}
             <br>
             <br>
             or
             <br>
             <br>
             Drop folder here
-            <input type="file" title="" multiple :webkitdirectory="shiftKeyPressed" @change="fileChange"
+            <input type="file" title="" multiple :webkitdirectory="openFolderByDefault" @change="fileChange"
                 @drop="fileChange" />
         </label>
-        <div :title="file.title" @click="loadImage(index)" v-for="(file, index) in files"
-            :class="{ 'flex-center': true, thumbnail: true, active: index == activeIndex }">
+        <div :title="file.title" @click="e => loadImage(e, index)" v-for="(file, index) in files"
+            :class="{ 'inline-flex-center': true, thumbnail: true, active: index == activeIndex, 'scale-up': scaleUpIndexes.has(index) }">
             <div class="name">{{ file.file.name }}</div>
-            <img :src="file.thumb64"
+            <img draggable="false" :src="file.thumb64"
                 :style="{ transform: `rotate(${file.orientation}deg)`, opacity: file.thumb64 ? 1 : 0 }" />
         </div>
     </div>
@@ -65,7 +65,8 @@ const readSets = new Set();
 export default {
     data() {
         return {
-            shiftKeyPressed: false,
+            scaleUpIndexes: new Set(),
+            openFolderByDefault: false,
             isDraggingOver: false,
             isLoading: false,
             activeIndex: -1,
@@ -76,7 +77,7 @@ export default {
     mounted() {
         window.addEventListener("keypress", e => {
             if (e.key === 'F') {
-                this.shiftKeyPressed = !this.shiftKeyPressed;
+                this.openFolderByDefault = !this.openFolderByDefault;
             }
         });
     },
@@ -88,7 +89,7 @@ export default {
         },
         lazyLoad() {
             const width = this.$refs.wrapper.clientWidth;
-            const scroll_left = this.$refs.wrapper.scrollLeft - this.$refs.uploader.clientWidth;
+            const scroll_left = this.$refs.wrapper.scrollLeft - this.$refs.uploader.clientWidth - this.scaleUpIndexes.size * (512 - 128);
             const thumb_width = 128 + 4;
             let left_bound = parseInt(scroll_left / thumb_width);
             left_bound = left_bound < 0 ? 0 : left_bound;
@@ -132,6 +133,7 @@ export default {
         async fileChange(e) {
             e.preventDefault();
             this.isDraggingOver = false;
+            this.scaleUpIndexes.clear();
 
             let files;
             if (e.dataTransfer) {
@@ -156,7 +158,16 @@ export default {
             })).concat(this.files);
             this.lazyLoad();
         },
-        loadImage(index) {
+        loadImage(event, index) {
+            if (event.shiftKey) {
+                if (this.scaleUpIndexes.has(index))
+                    this.scaleUpIndexes.delete(index);
+                else
+                    this.scaleUpIndexes.add(index);
+                return;
+            }
+            this.scaleUpIndexes.clear();
+
             if (index == this.activeIndex) return;
 
             if (index == undefined)
@@ -200,10 +211,11 @@ export default {
     transition: all ease 0.5s;
     border-radius: 4px;
     min-width: 128px;
-    min-height: 128px;
+    height: 128px;
     text-align: center;
     background: #171717;
-    transition: font-variation-settings 0.2s;
+    transition: font-variation-settings ease 0.2s;
+    vertical-align: bottom;
 }
 
 .uploader:hover {
@@ -230,13 +242,14 @@ export default {
 .thumbnail {
     position: relative;
     background: #222;
-    transition: background ease 0.3s;
     margin-left: 4px;
     cursor: pointer;
-    height: 128px;
+    width: 128px;
     min-width: 128px;
+    height: 128px;
     opacity: 0.75;
-    transition: opacity 0.3s;
+    transition: opacity ease 0.3s, background ease 0.3s, height ease 0.3s, min-width ease 0.3s;
+    vertical-align: bottom;
 }
 
 .thumbnail:hover {
@@ -258,9 +271,15 @@ export default {
     color: #fff;
 }
 
+.thumbnail.scale-up {
+    min-width: 512px;
+    height: 512px;
+    opacity: 1;
+}
+
 .thumbnail img {
-    max-width: 128px;
-    max-height: 128px;
+    max-width: 100%;
+    max-height: 100%;
     transition: opacity ease 0.3s;
 }
 
@@ -275,7 +294,7 @@ export default {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    transition: font-variation-settings 0.2s;
+    transition: font-variation-settings ease 0.2s;
     font-variation-settings: 'slnt' 0, 'wght' 400;
 }
 
@@ -285,14 +304,16 @@ export default {
     background: #111;
     padding: .5rem;
     padding-bottom: 2px;
+    align-items: end;
+    white-space: nowrap;
 }
 
 .loading {
     position: fixed;
+    top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 136px;
     background: #000a;
     z-index: 1;
     transition: opacity ease-in .2s;
