@@ -1,22 +1,18 @@
 const WEBGL = 'webgl2';
 
 const VERTEX = `#version 300 es
-    in vec2 corner_pos;
-    in vec2 pixel_pos;
+    in vec2 corner_coord;
+    in vec2 tex_coord;
 
-    uniform float degree;
+    uniform mat2 rotation_matrix;
 
-    out vec2 frag_pixel_pos;
+    out vec2 frag_tex_coord;
 
     void main() {
-        float x = corner_pos.x;
-        float y = corner_pos.y;
+        vec2 coord = rotation_matrix * corner_coord;
 
-        float angle = -degree * 3.14159265358 / 180.0;
-        vec2 pos = vec2(cos(angle) * x - sin(angle) * y, sin(angle) * x + cos(angle) * y);
-        
-        gl_Position = vec4(pos, 0, 1);
-        frag_pixel_pos = vec2(pixel_pos.x, 1.0 - pixel_pos.y);
+        gl_Position = vec4(coord, 0, 1);
+        frag_tex_coord = vec2(tex_coord.x, 1.0 - tex_coord.y);
     }
 `;
 
@@ -35,11 +31,11 @@ const FRAGMENT = `#version 300 es
     uniform float shadow_point;
     uniform float vibrance;
 
-    in vec2 frag_pixel_pos;
+    in vec2 frag_tex_coord;
     out vec4 output_color;
 
     void main() {
-        vec3 center = vec3(texture(image, frag_pixel_pos).rgb) / 65535.0;
+        vec3 center = vec3(texture(image, frag_tex_coord).rgb) / 65535.0;
 
         // color convert
         vec3 colored = clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
@@ -152,7 +148,7 @@ export function initWebgl(canvas, width, height) {
     const program = genProgram(gl, VERTEX, FRAGMENT);
     gl.useProgram(program);
 
-    setXYin(program, gl, "pixel_pos", new Int8Array([
+    setXYin(program, gl, "tex_coord", new Int8Array([
         0, 0,
         1, 0,
         0, 1,
@@ -168,7 +164,7 @@ export function initWebgl(canvas, width, height) {
         program,
         uniform: {
             image: gl.getUniformLocation(program, "image"),
-            degree: gl.getUniformLocation(program, "degree"),
+            rotation_matrix: gl.getUniformLocation(program, "rotation_matrix"),
             white_point: gl.getUniformLocation(program, "white_point"),
             black_point: gl.getUniformLocation(program, "black_point"),
             highlight_point: gl.getUniformLocation(program, "highlight_point"),
@@ -182,7 +178,7 @@ export function initWebgl(canvas, width, height) {
 }
 
 function renderWithPixelReading(program, gl, width, height, pixels_callback) {
-    setXYin(program, gl, "corner_pos", new Float32Array([
+    setXYin(program, gl, "corner_coord", new Float32Array([
         -.1, -.1,
         .1, -.1,
         -.1, .1,
@@ -199,7 +195,7 @@ function renderWithPixelReading(program, gl, width, height, pixels_callback) {
     const pixels = new Uint8Array(buffer);
     gl.readPixels(width / 2 - w / 2, height / 2 - h / 2, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     
-    setXYin(program, gl, "corner_pos", new Int8Array([
+    setXYin(program, gl, "corner_coord", new Int8Array([
         -1, -1,
         1, -1,
         -1, 1,
@@ -224,7 +220,11 @@ export function render(webgl_instance, img_data, size, orientation, white_balanc
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB16UI, orientation % 180 ? height : width, orientation % 180 ? width : height, 0, gl.RGB_INTEGER, gl.UNSIGNED_SHORT, img_data);
 
-    gl.uniform1f(uniform.degree, orientation);
+    const angle = -orientation * Math.PI / 180;
+    const sin_of_angle = Math.sin(angle);
+    const cos_of_angle = Math.cos(angle);
+    
+    gl.uniformMatrix2fv(uniform.rotation_matrix, false, [cos_of_angle, sin_of_angle, -sin_of_angle, cos_of_angle]);
     gl.uniform1f(uniform.black_point, 0);
     gl.uniform1f(uniform.white_point, 0);
     gl.uniform1f(uniform.highlight_point, 0);
