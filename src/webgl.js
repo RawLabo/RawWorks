@@ -22,6 +22,7 @@ const FRAGMENT = `#version 300 es
     uniform mediump usampler2D image;
 
     // uniform variables should also be added to (1)webgl_instance.uniform (2)render function for init
+    uniform vec2 distortion;
     uniform vec3 white_balance;
     uniform mat3 color_matrix;
     uniform float gamma;
@@ -35,7 +36,12 @@ const FRAGMENT = `#version 300 es
     out vec4 output_color;
 
     void main() {
-        vec3 center = vec3(texture(image, frag_tex_coord).rgb) / 65535.0;
+        vec2 coord = frag_tex_coord - 0.5;
+        vec2 shift_coord = distortion * pow(distance(coord, vec2(0.0)), 2.0);
+        vec2 coord_mask = vec2(pow(abs(coord.y), 1.1), pow(abs(coord.x), 1.1));
+        vec2 k = 1.0 + shift_coord * coord_mask;
+        vec2 corrected_coord = coord * k + 0.5;
+        vec3 center = vec3(texture(image, corrected_coord).rgb) / 65535.0;
 
         // color convert
         vec3 colored = clamp(clamp(center * white_balance, 0.0, 1.0) * color_matrix, 0.0, 1.0);
@@ -161,6 +167,7 @@ export function initWebgl(canvas, width, height) {
         program,
         uniform: {
             image: gl.getUniformLocation(program, "image"),
+            distortion: gl.getUniformLocation(program, "distortion"),
             rotation_matrix: gl.getUniformLocation(program, "rotation_matrix"),
             white_point: gl.getUniformLocation(program, "white_point"),
             black_point: gl.getUniformLocation(program, "black_point"),
@@ -191,7 +198,7 @@ function renderWithPixelReading(program, gl, width, height, pixels_callback) {
     const buffer = new SharedArrayBuffer(w * h * 4);
     const pixels = new Uint8Array(buffer);
     gl.readPixels(width / 2 - w / 2, height / 2 - h / 2, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    
+
     setXYin(program, gl, "corner_coord", new Int8Array([
         -1, -1,
         1, -1,
@@ -220,7 +227,8 @@ export function render(webgl_instance, img_data, size, orientation, white_balanc
     const angle = -orientation * Math.PI / 180;
     const sin_of_angle = Math.sin(angle);
     const cos_of_angle = Math.cos(angle);
-    
+
+    gl.uniform2fv(uniform.distortion, [0, 0]);
     gl.uniformMatrix2fv(uniform.rotation_matrix, false, [cos_of_angle, sin_of_angle, -sin_of_angle, cos_of_angle]);
     gl.uniform1f(uniform.black_point, 0);
     gl.uniform1f(uniform.white_point, 0);

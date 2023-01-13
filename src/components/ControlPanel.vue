@@ -30,17 +30,26 @@
         <o-slider :disabled="show_origin" v-model="shader.vibrance" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.vibrance = 0" />
 
+        distortion x:{{ shader.distortion_x }}  y:{{ shader.distortion_y }}
+        <o-slider :disabled="show_origin" v-model="shader.distortion_x" :step="0.01" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.distortion_x = 0" />
+        <o-slider :disabled="show_origin" v-model="shader.distortion_y" :step="0.01" :min="-1" :max="1" :tooltip="false"
+            @dblclick="shader.distortion_y = 0" />
+
         <div class="flex">
             <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
             <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
         </div>
 
-        <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export JPG</o-button>
+        <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export
+            JPG</o-button>
         <div class="export-wrapper">
             rating {{ rating }}
             <o-slider v-model="rating" :step="1" :min="1" :max="5" :tooltip="false" rounded variant="info" />
-            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportAdobeXMP">↓ Adobe XMP</o-button>
-            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportDarktableXMP">↓ darktable XMP</o-button>
+            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportAdobeXMP">↓ Adobe
+                XMP</o-button>
+            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportDarktableXMP">↓ darktable
+                XMP</o-button>
             <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportPP3">↓ PP3</o-button>
         </div>
     </div>
@@ -78,6 +87,8 @@ export default {
                 highlight_point: 0,
                 shadow_point: 0,
                 vibrance: 0,
+                distortion_x: 0,
+                distortion_y: 0,
                 white_balance_r: 1,
                 white_balance_b: 1
             },
@@ -225,6 +236,12 @@ export default {
         'shader.vibrance'(v) {
             this.setShader('vibrance', v);
         },
+        'shader.distortion_x'(v) {
+            this.setShader('distortion', [v, this.shader.distortion_y], 'uniform2fv');
+        },
+        'shader.distortion_y'(v) {
+            this.setShader('distortion', [this.shader.distortion_x, v], 'uniform2fv');
+        }
     }
 }
 </script>
@@ -249,6 +266,7 @@ export default {
     margin: 8px 0;
     padding-bottom: 4px;
 }
+
 .export-wrapper .export-btn {
     margin-bottom: .5rem;
 }
@@ -260,6 +278,7 @@ export default {
 .export-jpg {
     margin-top: .5rem;
 }
+
 .export-btn {
     margin-right: .5rem;
 }
