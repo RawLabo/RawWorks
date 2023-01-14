@@ -241,6 +241,7 @@ export default {
 
 .thumbnail {
     position: relative;
+    border-radius: 4px;
     background: #222;
     margin-left: 4px;
     cursor: pointer;

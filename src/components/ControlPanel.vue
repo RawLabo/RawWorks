@@ -30,7 +30,7 @@
         <o-slider :disabled="show_origin" v-model="shader.vibrance" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.vibrance = 0" />
 
-        <label>Distortion x:{{ shader.distortion_x }} y:{{ shader.distortion_y }}</label>
+        <label>Distortion X:{{ shader.distortion_x }} Y:{{ shader.distortion_y }}</label>
         <o-checkbox class="distortion-mask" v-model="shader.distortion_mask" variant="transparent">Larger
             view</o-checkbox>
         <o-slider :disabled="show_origin" v-model="shader.distortion_x" :step="0.01" :min="-1" :max="1" :tooltip="false"
@@ -46,7 +46,7 @@
         <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export
             JPG</o-button>
         <div class="export-wrapper">
-            rating {{ rating }}
+            Rating {{ rating }}
             <o-slider v-model="rating" :step="1" :min="1" :max="5" :tooltip="false" rounded variant="info" />
             <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportAdobeXMP">↓ Adobe
                 XMP</o-button>
