@@ -8,19 +8,17 @@ import ControlPanel from './components/ControlPanel.vue'
 
 <template>
     <div class="body-wrapper">
-        <div class="frames" :style="{ 'grid-template-columns': `repeat(${grid_cols}, 1fr)` }">
-            <photo-frame :filename="filename" :img="img"
-                @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
-        </div>
+        <photo-frame :filename="filename" :img="img"
+            @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
                 @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage({})" />
             <perf-timer :timer="timer" />
-            <div :class="{'app-info': true, warning: app_version.indexOf('↑') > -1}">RawWorks v{{ app_version }}<div class="tip">You can close the tab and
+            <div :class="{ 'app-info': true, warning: app_version.indexOf('↑') > -1 }">RawWorks v{{ app_version }}<div
+                    class="tip">You can close the tab and
                     reopen RawWorks to do an autoupdate.</div>
             </div>
-
         </div>
         <photo-list ref="photo_lst_comp" class="photo-list" @prepare="prepare"
             @raw_decoded="(i, name) => { img = i; filename = name; }" />
@@ -87,13 +85,6 @@ export default {
     grid-template-rows: 1fr auto;
 }
 
-.frames {
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    display: grid;
-}
-
 .photo-list {
     grid-area: auto / 1 / auto / 3;
 }
@@ -109,12 +100,15 @@ export default {
     font-variation-settings: 'slnt' -5, 'wght' 800;
     padding-left: 0.1rem;
 }
+
 .app-info .tip {
     display: none;
 }
+
 .app-info.warning {
     color: yellow;
 }
+
 .app-info.warning .tip {
     display: block;
 }
