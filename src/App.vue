@@ -15,7 +15,7 @@ import ControlPanel from './components/ControlPanel.vue'
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
-                @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage()" />
+                @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage({})" />
             <perf-timer :timer="timer" />
             <div class="app-info">{{ app_info }}</div>
         </div>

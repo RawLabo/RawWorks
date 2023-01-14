@@ -22,6 +22,7 @@ const FRAGMENT = `#version 300 es
     uniform mediump usampler2D image;
 
     // uniform variables should also be added to (1)webgl_instance.uniform (2)render function for init
+    uniform float distortion_mask;
     uniform vec2 distortion;
     uniform vec3 white_balance;
     uniform mat3 color_matrix;
@@ -38,7 +39,7 @@ const FRAGMENT = `#version 300 es
     void main() {
         vec2 coord = frag_tex_coord - 0.5;
         vec2 shift_coord = distortion * pow(distance(coord, vec2(0.0)), 2.0);
-        vec2 coord_mask = vec2(pow(abs(coord.y), 1.1), pow(abs(coord.x), 1.1));
+        vec2 coord_mask = max(vec2(distortion_mask), vec2(pow(abs(coord.y), 1.1), pow(abs(coord.x), 1.1)));
         vec2 k = 1.0 + shift_coord * coord_mask;
         vec2 corrected_coord = coord * k + 0.5;
         vec3 center = vec3(texture(image, corrected_coord).rgb) / 65535.0;
@@ -167,6 +168,7 @@ export function initWebgl(canvas, width, height) {
         program,
         uniform: {
             image: gl.getUniformLocation(program, "image"),
+            distortion_mask: gl.getUniformLocation(program, "distortion_mask"),
             distortion: gl.getUniformLocation(program, "distortion"),
             rotation_matrix: gl.getUniformLocation(program, "rotation_matrix"),
             white_point: gl.getUniformLocation(program, "white_point"),
@@ -228,6 +230,7 @@ export function render(webgl_instance, img_data, size, orientation, white_balanc
     const sin_of_angle = Math.sin(angle);
     const cos_of_angle = Math.cos(angle);
 
+    gl.uniform1f(uniform.distortion_mask, 0);
     gl.uniform2fv(uniform.distortion, [0, 0]);
     gl.uniformMatrix2fv(uniform.rotation_matrix, false, [cos_of_angle, sin_of_angle, -sin_of_angle, cos_of_angle]);
     gl.uniform1f(uniform.black_point, 0);
@@ -246,6 +249,24 @@ export function updateUniform(webgl_instance, uniform_fn, uniform_name, data, pi
     const { gl, uniform, program } = webgl_instance;
 
     gl[uniform_fn](uniform[uniform_name], data);
+
+    const width = gl.canvas.width;
+    const height = gl.canvas.height;
+
+    renderWithPixelReading(program, gl, width, height, pixels_callback);
+}
+export function updateUniformAllVars(webgl_instance, data, pixels_callback) {
+    const { gl, uniform, program } = webgl_instance;
+
+    gl.uniform1f(uniform.distortion_mask, data.distortion_mask);
+    gl.uniform2fv(uniform.distortion, data.distortion);
+    gl.uniform1f(uniform.black_point, data.black_point);
+    gl.uniform1f(uniform.white_point, data.white_point);
+    gl.uniform1f(uniform.highlight_point, data.highlight_point);
+    gl.uniform1f(uniform.shadow_point, data.shadow_point);
+    gl.uniform1f(uniform.gamma, data.gamma);
+    gl.uniform1f(uniform.vibrance, data.vibrance);
+    gl.uniform3fv(uniform.white_balance, data.white_balance);
 
     const width = gl.canvas.width;
     const height = gl.canvas.height;
