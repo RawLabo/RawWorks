@@ -1,36 +1,38 @@
 <template>
     <div class="container" v-if="webgl_instance">
-        white balance {{ shader.white_balance_r.toFixed(3) }} | {{ shader.white_balance_b.toFixed(3) }}
+        <label>White balance {{ shader.white_balance_r.toFixed(3) }} | {{ shader.white_balance_b.toFixed(3) }}</label>
         <o-slider :disabled="show_origin" v-model="shader.white_balance_r" :step="0.001" :min="0" :max="5"
             :tooltip="false" @dblclick="shader.white_balance_r = white_balance[0]" />
         <o-slider :disabled="show_origin" v-model="shader.white_balance_b" :step="0.001" :min="0" :max="5"
             :tooltip="false" @dblclick="shader.white_balance_b = white_balance[2]" />
 
-        gamma {{ shader.gamma }}
+        <label>Gamma {{ shader.gamma }}</label>
         <o-slider :disabled="show_origin" v-model="shader.gamma" :step="0.01" :min="0" :max="10" :tooltip="false"
             @dblclick="shader.gamma = 2.22" />
 
-        white point {{ shader.white_point }}
+        <label>White point {{ shader.white_point }}</label>
         <o-slider :disabled="show_origin" v-model="shader.white_point" :step="0.001" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.white_point = 0" />
 
-        black point {{ shader.black_point }}
+        <label>Black point {{ shader.black_point }}</label>
         <o-slider :disabled="show_origin" v-model="shader.black_point" :step="0.001" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.black_point = 0" />
 
-        highlight {{ shader.highlight_point }}
+        <label>Highlight {{ shader.highlight_point }}</label>
         <o-slider :disabled="show_origin" v-model="shader.highlight_point" :step="0.01" :min="-1" :max="1"
             :tooltip="false" @dblclick="shader.highlight_point = 0" />
 
-        shadow {{ shader.shadow_point }}
+        <label>Shadow {{ shader.shadow_point }}</label>
         <o-slider :disabled="show_origin" v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.shadow_point = 0" />
 
-        vibrance {{ shader.vibrance }}
+        <label>Vibrance {{ shader.vibrance }}</label>
         <o-slider :disabled="show_origin" v-model="shader.vibrance" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.vibrance = 0" />
 
-        distortion x:{{ shader.distortion_x }}  y:{{ shader.distortion_y }}
+        <label>Distortion X:{{ shader.distortion_x }} Y:{{ shader.distortion_y }}</label>
+        <o-checkbox class="distortion-mask" v-model="shader.distortion_mask" variant="transparent">Larger
+            view</o-checkbox>
         <o-slider :disabled="show_origin" v-model="shader.distortion_x" :step="0.01" :min="-1" :max="1" :tooltip="false"
             @dblclick="shader.distortion_x = 0" />
         <o-slider :disabled="show_origin" v-model="shader.distortion_y" :step="0.01" :min="-1" :max="1" :tooltip="false"
@@ -44,7 +46,7 @@
         <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export
             JPG</o-button>
         <div class="export-wrapper">
-            rating {{ rating }}
+            Rating {{ rating }}
             <o-slider v-model="rating" :step="1" :min="1" :max="5" :tooltip="false" rounded variant="info" />
             <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportAdobeXMP">↓ Adobe
                 XMP</o-button>
@@ -56,7 +58,7 @@
 </template>
 
 <script>
-import { updateUniform, readPixelsAsync } from "../webgl";
+import { updateUniform, updateUniformAllVars, readPixelsAsync } from "../webgl";
 
 const gen_pp3 = r => `[General]
 Rank=${r}`;
@@ -74,6 +76,7 @@ export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
     data() {
         return {
+            keep_shader_settings: false,
             prevent_shader_update: false,
             show_origin: false,
             better_demosaicing: false,
@@ -89,6 +92,7 @@ export default {
                 vibrance: 0,
                 distortion_x: 0,
                 distortion_y: 0,
+                distortion_mask: true,
                 white_balance_r: 1,
                 white_balance_b: 1
             },
@@ -194,6 +198,7 @@ export default {
     },
     watch: {
         better_demosaicing(v) {
+            this.keep_shader_settings = true;
             window.settings.better_demosaicing = v;
             this.$emit("change_demosaicing");
         },
@@ -207,10 +212,32 @@ export default {
                 this.mem = null;
             }
         },
-        'webgl_instance'() {
+        'webgl_instance'(v) {
+            if (!v) return;
             // this is the actual init after each new image loaded
-            this.resetShader(true);
-            this.rating = 3;
+            if (this.keep_shader_settings) {
+                this.keep_shader_settings = false;
+                const shader = this.shader;
+                const data = {
+                    gamma: 1 / shader.gamma,
+                    white_point: shader.white_point,
+                    black_point: shader.black_point,
+                    highlight_point: shader.highlight_point,
+                    shadow_point: shader.shadow_point,
+                    vibrance: shader.vibrance,
+                    distortion_mask: shader.distortion_mask ? 0 : 1,
+                    distortion: [this.shader.distortion_x, this.shader.distortion_y],
+                    white_balance: [this.shader.white_balance_r, 1.0, this.shader.white_balance_b]
+                };
+                updateUniformAllVars(this.webgl_instance, data, pixels => {
+                    window.sendToWorker('calc_histogram', pixels).then(data => {
+                        this.$emit("histogram_load", data);
+                    });
+                });
+            } else {
+                this.resetShader(true);
+                this.rating = 3;
+            }
         },
         'shader.white_balance_r'(v) {
             this.setShader('white_balance', [v, 1.0, this.shader.white_balance_b], 'uniform3fv');
@@ -236,6 +263,9 @@ export default {
         'shader.vibrance'(v) {
             this.setShader('vibrance', v);
         },
+        'shader.distortion_mask'(v) {
+            this.setShader('distortion_mask', v ? 0 : 1);
+        },
         'shader.distortion_x'(v) {
             this.setShader('distortion', [v, this.shader.distortion_y], 'uniform2fv');
         },
@@ -248,6 +278,14 @@ export default {
 <style scoped>
 .container {
     margin-bottom: .5rem;
+}
+
+.container label {
+    vertical-align: middle;
+}
+
+.distortion-mask {
+    float: right;
 }
 
 .o-slide {
