@@ -5,7 +5,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 
 export default defineConfig({
   define: {
-    '__APP_INFO__': JSON.stringify(process.env.npm_package_name + ' v' + process.env.npm_package_version),
+    '__APP_VERSION__': JSON.stringify(process.env.npm_package_version),
   },
   plugins: [
     VitePWA({

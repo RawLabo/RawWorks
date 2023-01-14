@@ -17,7 +17,10 @@ import ControlPanel from './components/ControlPanel.vue'
             <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
                 @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage({})" />
             <perf-timer :timer="timer" />
-            <div class="app-info">{{ app_info }}</div>
+            <div :class="{'app-info': true, warning: app_version.indexOf('↑') > -1}">RawWorks v{{ app_version }}<div class="tip">You can close the tab and
+                    reopen RawWorks to do an autoupdate.</div>
+            </div>
+
         </div>
         <photo-list ref="photo_lst_comp" class="photo-list" @prepare="prepare"
             @raw_decoded="(i, name) => { img = i; filename = name; }" />
@@ -28,7 +31,7 @@ import ControlPanel from './components/ControlPanel.vue'
 export default {
     data() {
         return {
-            app_info: __APP_INFO__,
+            app_version: __APP_VERSION__,
             grid_cols: 1,
             filename: '',
             img: null,
@@ -60,6 +63,17 @@ export default {
     },
     mounted() {
         window.timer = this.timer; // for better accuracy
+        document.title += ' v' + this.app_version;
+
+        fetch('https://raw.githubusercontent.com/qdwang/RawWorks/release/package.json').then(x => x.json()).then(data => {
+            const latest_version = data.version;
+
+            if (latest_version != this.app_version) {
+                const suffix = `(v${latest_version}↑)`;
+                this.app_version += suffix;
+                document.title += suffix;
+            }
+        });
     }
 }
 </script>
@@ -91,7 +105,17 @@ export default {
 }
 
 .app-info {
-    color: #444;
+    color: #666;
+    font-variation-settings: 'slnt' -5, 'wght' 800;
     padding-left: 0.1rem;
+}
+.app-info .tip {
+    display: none;
+}
+.app-info.warning {
+    color: yellow;
+}
+.app-info.warning .tip {
+    display: block;
 }
 </style>
