@@ -1,0 +1,19 @@
+{
+    "name": "RawWorks",
+    "short_name": "RawWorks",
+    "display": "standalone",
+    "theme_color": "#111",
+    "background_color": "#111",
+    "scope": "https://rawworks.qdwang.dev/",
+    "start_url": "https://rawworks.qdwang.dev/",
+    "description": "A web-based camera raw photo editing tool with real-time histogram, offline support and advanced features",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "https://rawworks.qdwang.dev/favicon.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "maskable any"
+        }
+    ]
+}
