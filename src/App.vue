@@ -16,8 +16,7 @@ import ControlPanel from './components/ControlPanel.vue'
                 @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage({})" />
             <perf-timer :timer="timer" />
             <div :class="{ 'app-info': true, warning: app_version.indexOf('↑') > -1 }">RawWorks v{{ app_version }}<div
-                    class="tip">You can close the tab and
-                    reopen RawWorks to do an autoupdate.</div>
+                    class="tip">You can close this window, and then reopen RawWorks to perform an auto-update.</div>
             </div>
         </div>
         <photo-list ref="photo_lst_comp" class="photo-list" @prepare="prepare"
