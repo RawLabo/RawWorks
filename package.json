@@ -1,7 +1,7 @@
 {
   "name": "rawworks",
   "version": "0.0.11",
-  "description": "A web-based camera raw photo editing tool with real-time histogram, offline support and advanced features",
+  "description": "A powerful web-based PWA photo editor that offers features like real-time histogram rendering and offline capability, with fast performance",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
