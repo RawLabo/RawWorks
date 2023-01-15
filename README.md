@@ -1,5 +1,5 @@
 # RawWorks
-A web-based photo editing tool with real-time histogram, offline support and advanced features.
+A web-based camera raw photo editing tool with real-time histogram, offline support and advanced features.
 
 ## Features
 * Experience seamless access to your photos and editing tools with a web browser, with no need for installation.
