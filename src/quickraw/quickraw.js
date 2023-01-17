@@ -173,12 +173,13 @@ function getArrayU8FromWasm0(ptr, len) {
 * @param {number} pixels_ptr
 * @param {number} width
 * @param {number} height
+* @param {number} quality
 * @returns {Uint8Array}
 */
-export function encode_to_jpeg(pixels_ptr, width, height) {
+export function encode_to_jpeg(pixels_ptr, width, height, quality) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.encode_to_jpeg(retptr, pixels_ptr, width, height);
+        wasm.encode_to_jpeg(retptr, pixels_ptr, width, height, quality);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];

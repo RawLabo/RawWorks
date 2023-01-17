@@ -16,7 +16,7 @@ const fn_map = {
             pixels.set(input.subarray(start, start + row_len), ptr + (height - row - 1) * row_len);
         }
 
-        const jpeg = quickraw.encode_to_jpeg(ptr, width, height);
+        const jpeg = quickraw.encode_to_jpeg(ptr, width, height, 93);
 
         postMessage({ id, result: jpeg }, [jpeg.buffer]);
     },

@@ -71,6 +71,22 @@ const gen_xmp = r => `<?xml version="1.0" encoding="UTF-8"?>
   </rdf:Description>
  </rdf:RDF>
 </x:xmpmeta>`;
+const exif_template = new Uint8Array([
+    0xff, 0xe1, 0x00, 0x58, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00, 0x4d, 0x4d, 0x00, 0x2a, 0x00, 0x00,
+    0x00, 0x08, 0x00, 0x01, 0x87, 0x69, 0x00, 0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x1a,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x90, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x04, 0x30, 0x32,
+    0x33, 0x30, 0x91, 0x01, 0x00, 0x07, 0x00, 0x00, 0x00, 0x04, 0x01, 0x02, 0x03, 0x00, 0xa0, 0x00,
+    0x00, 0x07, 0x00, 0x00, 0x00, 0x04, 0x30, 0x31, 0x30, 0x30, 0xa0, 0x01, 0x00, 0x03, 0x00, 0x00,
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+]);
+function add_exif_to_jpeg(buffer) {
+    buffer = new Uint8Array(buffer);
+    const result = new Uint8Array(buffer.length + exif_template.length);
+    result.set(buffer.subarray(0, 20), 0);
+    result.set(exif_template, 20);
+    result.set(buffer.subarray(20), exif_template.length + 20);
+    return result;
+}
 
 export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
@@ -145,7 +161,8 @@ export default {
             readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
                 .then(pixels => window.sendToWorker('rgba_to_jpeg', pixels, width, height))
                 .then(jpeg => {
-                    const blob = new Blob([jpeg.buffer]);
+                    const fixed_jpeg = add_exif_to_jpeg(jpeg.buffer);
+                    const blob = new Blob([fixed_jpeg]);
                     const link = document.createElement('a');
                     link.download = filename + '.jpg';
                     link.href = window.URL.createObjectURL(blob);
@@ -165,13 +182,15 @@ export default {
             const filename = canvas.getAttribute('data-filename');
             const link = document.createElement('a');
             link.download = filename + '.jpg';
-            canvas.toBlob(blob => {
-                link.href = window.URL.createObjectURL(blob);
+            canvas.toBlob(async blob => {
+                const buffer = await blob.arrayBuffer();
+                const fixed_jpeg = add_exif_to_jpeg(buffer);
+                link.href = window.URL.createObjectURL(new Blob([fixed_jpeg]));
                 link.click();
                 setTimeout(() => {
                     this.generating_exports = false;
                 }, 300);
-            }, 'image/jpeg', 0.98);
+            }, 'image/jpeg', 0.93);
         },
         setShader(name, value, method) {
             if (this.prevent_shader_update) return;
