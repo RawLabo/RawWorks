@@ -29,7 +29,8 @@ export default {
       touch_distence = e.scale;
     },
     zoom(e, toggle_to_x) {
-      e.preventDefault();
+      if (e.preventDefault)
+        e.preventDefault();
 
       const container = this.$refs.container;
       const canvas = this.$refs.canvas;
@@ -211,9 +212,11 @@ export default {
     window.addEventListener("keyup", e => {
       if (e.key >= 1 && e.key <= 8) {
         const container = this.$refs.container;
-        e.pageX = container.offsetLeft + container.clientWidth / 2;
-        e.pageY = container.offsetTop + container.clientHeight / 2;
-        this.zoom(e, parseInt(e.key));
+        const mod_e = {};
+        Object.assign(mod_e, e);
+        mod_e.pageX = container.offsetLeft + container.clientWidth / 2;
+        mod_e.pageY = container.offsetTop + container.clientHeight / 2;
+        this.zoom(mod_e, parseInt(e.key));
       }
     });
   },
