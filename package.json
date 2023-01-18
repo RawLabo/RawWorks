@@ -1,6 +1,6 @@
 {
   "name": "rawworks",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "A powerful web-based PWA photo editor that offers features like real-time histogram rendering and offline capability, with fast performance",
   "type": "module",
   "scripts": {
