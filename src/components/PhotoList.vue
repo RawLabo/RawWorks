@@ -76,7 +76,7 @@ export default {
     },
     mounted() {
         window.addEventListener("keypress", e => {
-            if (e.key === 'F') {
+            if (e.key === 'D') {
                 this.openFolderByDefault = !this.openFolderByDefault;
             }
         });
