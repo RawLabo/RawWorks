@@ -43,7 +43,7 @@
             <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
         </div>
 
-        <div class="flex">
+        <div class="flex" v-if="!is_chrome">
             <o-checkbox v-model="icc_profile.enable" variant="transparent">
                 <a href="#">{{ icc_profile.name }}</a>
                 <input type="file" accept=".icc" name="icc_profile" @change="iccLoad" />
@@ -86,6 +86,7 @@ export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
     data() {
         return {
+            is_chrome: window.isChrome,
             keep_shader_settings: false,
             prevent_shader_update: false,
             show_origin: false,
