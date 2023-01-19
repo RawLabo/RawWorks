@@ -43,6 +43,13 @@
             <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
         </div>
 
+        <div class="flex">
+            <o-checkbox v-model="icc_profile.enable" variant="transparent">
+                <a href="#">{{ icc_profile.name }}</a>
+                <input type="file" accept=".icc" name="icc_profile" @change="iccLoad" />
+            </o-checkbox>
+        </div>
+
         <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export
             JPG</o-button>
         <div class="export-wrapper">
@@ -58,7 +65,7 @@
 </template>
 
 <script>
-import { add_exif_and_icc_to_jpeg, add_exif_to_jpeg } from "./jpeg";
+import { add_exif_and_icc_to_jpeg, add_icc_to_jpeg, add_exif_to_jpeg } from "./jpeg";
 import { updateUniform, updateUniformAllVars, readPixelsAsync } from "../webgl";
 
 const gen_pp3 = r => `[General]
@@ -72,6 +79,8 @@ const gen_xmp = r => `<?xml version="1.0" encoding="UTF-8"?>
   </rdf:Description>
  </rdf:RDF>
 </x:xmpmeta>`;
+
+const reader = new FileReader();
 
 export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
@@ -97,6 +106,11 @@ export default {
                 white_balance_r: 1,
                 white_balance_b: 1
             },
+            icc_profile: {
+                enable: false,
+                name: 'ICC Profile',
+                data: new Uint8Array()
+            }
         }
     },
     methods: {
@@ -146,7 +160,7 @@ export default {
             readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
                 .then(pixels => window.sendToWorker('rgba_to_jpeg', pixels, width, height))
                 .then(jpeg => {
-                    const processed_jpeg = add_exif_and_icc_to_jpeg(jpeg.buffer);
+                    const processed_jpeg = this.icc_profile.enable ? add_icc_to_jpeg(jpeg.buffer, this.icc_profile.data) : add_exif_and_icc_to_jpeg(jpeg.buffer);
                     const blob = new Blob([processed_jpeg]);
                     const link = document.createElement('a');
                     link.download = filename + '.jpg';
@@ -199,6 +213,18 @@ export default {
                     this.prevent_shader_update = false;
                 });
             }
+        },
+        iccLoad(e) {
+            const f = e.target.files[0];
+
+            reader.onloadend = () => {
+                const buffer = reader.result;
+                this.icc_profile.name = f.name;
+                this.icc_profile.enable = true;
+                this.icc_profile.data = new Uint8Array(buffer);
+            };
+
+            reader.readAsArrayBuffer(f);
         }
     },
     watch: {
@@ -300,6 +326,17 @@ export default {
 .flex {
     justify-content: space-between;
     align-items: center;
+    margin: 2px 0;
+    position: relative;
+}
+
+.flex input {
+    position: absolute;
+    top: 0;
+    left: 17px;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
 }
 
 .export-wrapper {

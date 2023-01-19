@@ -36,6 +36,17 @@ export function add_exif_and_icc_to_jpeg(buffer) {
     return result;
 }
 
+export function add_icc_to_jpeg(buffer, alt_icc) {
+    buffer = new Uint8Array(buffer);
+    const icc_profile = gen_icc_profile(alt_icc);
+
+    const result = new Uint8Array(buffer.length + icc_profile.length);
+    result.set(buffer.subarray(0, 20), 0);
+    result.set(icc_profile, 20);
+    result.set(buffer.subarray(20), 20 + icc_profile.length);
+    return result;
+}
+
 export function add_exif_to_jpeg(buffer) {
     buffer = new Uint8Array(buffer);
 
