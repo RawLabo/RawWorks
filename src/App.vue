@@ -7,8 +7,8 @@ import ControlPanel from './components/ControlPanel.vue'
 </script>
 
 <template>
-    <div class="body-wrapper">
-        <photo-frame :filename="filename" :img="img"
+    <div :class="{'body-wrapper': true, fullscreen: fullscreen_mode}">
+        <photo-frame ref="photo_frame" :filename="filename" :img="img"
             @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
@@ -40,7 +40,8 @@ export default {
                 file_loaded: 0,
                 raw_decoded: 0,
                 rendered: 0,
-            }
+            },
+            fullscreen_mode: false
         }
     },
     methods: {
@@ -56,6 +57,11 @@ export default {
                 this.white_balance = [].slice.call(v.white_balance);
             else
                 this.white_balance = [];
+        },
+        fullscreen_mode() {
+            this.$nextTick(() => {
+                this.$refs.photo_frame.checkCanvasTransform();
+            })
         }
     },
     mounted() {
@@ -71,6 +77,12 @@ export default {
                 document.title += suffix;
             }
         });
+
+        window.addEventListener("keypress", e => {
+            if (e.key === 'f') {
+                this.fullscreen_mode = !this.fullscreen_mode;
+            }
+        });
     }
 }
 </script>
@@ -82,6 +94,10 @@ export default {
     display: grid;
     grid-template-columns: 1fr 272px;
     grid-template-rows: 1fr auto;
+}
+.fullscreen {
+    grid-template-columns: 1fr 0px;
+    grid-template-rows: 1fr 0px;
 }
 
 .photo-list {
