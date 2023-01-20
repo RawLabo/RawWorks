@@ -2,9 +2,9 @@ import { createApp } from 'vue'
 import './global.css'
 import App from './App.vue'
 
+window.SharedArrayBuffer = window.SharedArrayBuffer || window.ArrayBuffer;
 window.isSafari = navigator.userAgent.indexOf('Safari') > -1 && navigator.userAgent.indexOf('Chrome') == -1;
 window.isChrome = !!window.chrome;
-
 window.settings = {
     better_demosaicing: false
 };
