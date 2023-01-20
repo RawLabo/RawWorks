@@ -218,6 +218,10 @@ export default {
 
             reader.onloadend = () => {
                 const buffer = reader.result;
+                if (!buffer.byteLength) {
+                    alert('Cannot read this ICC profile or this file is empty');
+                    return;
+                }
                 this.icc_profile.name = f.name;
                 this.icc_profile.enable = true;
                 this.icc_profile.data = new Uint8Array(buffer);
