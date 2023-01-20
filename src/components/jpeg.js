@@ -23,36 +23,57 @@ function gen_icc_profile(profile) {
     return result;
 }
 
+function check_icc_range(buffer) {
+    if (buffer[20] == 0xff && buffer[21] == 0xe2) {
+        const len = new Uint16Array(new Uint8Array([buffer[23], buffer[22]]).buffer)[0]; // little-endian
+        return [20, 22 + len];
+    }
 
-export function add_exif_and_icc_to_jpeg(buffer) {
-    buffer = new Uint8Array(buffer);
-    const icc_profile = gen_icc_profile(srgb_profile);
-
-    const result = new Uint8Array(buffer.length + exif_with_colorspace.length + icc_profile.length);
-    result.set(buffer.subarray(0, 20), 0);
-    result.set(exif_with_colorspace, 20);
-    result.set(icc_profile, 20 + exif_with_colorspace.length);
-    result.set(buffer.subarray(20), 20 + exif_with_colorspace.length + icc_profile.length);
-    return result;
+    return null;
 }
 
-export function add_icc_to_jpeg(buffer, alt_icc) {
+export function add_srgb_to_jpeg(buffer) {
     buffer = new Uint8Array(buffer);
-    const icc_profile = gen_icc_profile(alt_icc);
 
-    const result = new Uint8Array(buffer.length + icc_profile.length);
-    result.set(buffer.subarray(0, 20), 0);
-    result.set(icc_profile, 20);
-    result.set(buffer.subarray(20), 20 + icc_profile.length);
-    return result;
+    if (check_icc_range(buffer)) {
+        const result = new Uint8Array(buffer.length + exif_with_colorspace.length);
+        result.set(buffer.subarray(0, 20), 0);
+        result.set(exif_with_colorspace, 20);
+        result.set(buffer.subarray(20), 20 + exif_with_colorspace.length);
+        return result;
+    } else {
+        const icc_profile = gen_icc_profile(srgb_profile);
+        const result = new Uint8Array(buffer.length + exif_with_colorspace.length + icc_profile.length);
+        result.set(buffer.subarray(0, 20), 0);
+        result.set(exif_with_colorspace, 20);
+        result.set(icc_profile, 20 + exif_with_colorspace.length);
+        result.set(buffer.subarray(20), 20 + exif_with_colorspace.length + icc_profile.length);
+        return result;
+    }
 }
 
-export function add_exif_to_jpeg(buffer) {
-    buffer = new Uint8Array(buffer);
+export function add_icc_to_jpeg(buffer, icc_data) {
+    if (!icc_data) {
+        add_srgb_to_jpeg(buffer);
+        return;
+    }
 
-    const result = new Uint8Array(buffer.length + exif_with_colorspace.length);
-    result.set(buffer.subarray(0, 20), 0);
-    result.set(exif_with_colorspace, 20);
-    result.set(buffer.subarray(20), 20 + exif_with_colorspace.length);
-    return result;
+    buffer = new Uint8Array(buffer);
+    const icc_profile = gen_icc_profile(icc_data);
+
+    const jpeg_icc_range = check_icc_range(buffer);
+    if (jpeg_icc_range) {
+        const [left, right] = jpeg_icc_range;
+        const result = new Uint8Array(buffer.length - (right - left) + icc_profile.length);
+        result.set(buffer.subarray(0, 20), 0);
+        result.set(icc_profile, 20);
+        result.set(buffer.subarray(right), 20 + icc_profile.length);
+        return result;
+    } else {
+        const result = new Uint8Array(buffer.length + icc_profile.length);
+        result.set(buffer.subarray(0, 20), 0);
+        result.set(icc_profile, 20);
+        result.set(buffer.subarray(20), 20 + icc_profile.length);
+        return result;
+    }
 }

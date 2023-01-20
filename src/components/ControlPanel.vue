@@ -43,7 +43,7 @@
             <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
         </div>
 
-        <div class="flex" v-if="!is_chrome">
+        <div class="flex">
             <o-checkbox v-model="icc_profile.enable" variant="transparent">
                 <a href="#">{{ icc_profile.name }}</a>
                 <input type="file" accept=".icc" name="icc_profile" @change="iccLoad" />
@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { add_exif_and_icc_to_jpeg, add_icc_to_jpeg, add_exif_to_jpeg } from "./jpeg";
+import { add_icc_to_jpeg, add_srgb_to_jpeg } from "./jpeg";
 import { updateUniform, updateUniformAllVars, readPixelsAsync } from "../webgl";
 
 const gen_pp3 = r => `[General]
@@ -86,7 +86,6 @@ export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
     data() {
         return {
-            is_chrome: window.isChrome,
             keep_shader_settings: false,
             prevent_shader_update: false,
             show_origin: false,
@@ -161,7 +160,7 @@ export default {
             readPixelsAsync(gl, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
                 .then(pixels => window.sendToWorker('rgba_to_jpeg', pixels, width, height))
                 .then(jpeg => {
-                    const processed_jpeg = this.icc_profile.enable ? add_icc_to_jpeg(jpeg.buffer, this.icc_profile.data) : add_exif_and_icc_to_jpeg(jpeg.buffer);
+                    const processed_jpeg = this.icc_profile.enable ? add_icc_to_jpeg(jpeg.buffer, this.icc_profile.data) : add_srgb_to_jpeg(jpeg.buffer);
                     const blob = new Blob([processed_jpeg]);
                     const link = document.createElement('a');
                     link.download = filename + '.jpg';
@@ -184,8 +183,7 @@ export default {
             link.download = filename + '.jpg';
             canvas.toBlob(async blob => {
                 const buffer = await blob.arrayBuffer();
-                const jpeg_fn = window.isChrome ? add_exif_to_jpeg : add_exif_and_icc_to_jpeg;
-                const processed_jpeg = jpeg_fn(buffer);
+                const processed_jpeg = this.icc_profile.enable ? add_icc_to_jpeg(buffer, this.icc_profile.data) : add_srgb_to_jpeg(buffer);
                 link.href = window.URL.createObjectURL(new Blob([processed_jpeg]));
                 link.click();
                 setTimeout(() => {
