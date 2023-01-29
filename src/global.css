@@ -14,6 +14,7 @@
     color: #bbb;
     -webkit-user-select: none;
     user-select: none;
+    scrollbar-width: thin;
 }
 
 html {
