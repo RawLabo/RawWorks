@@ -17,9 +17,9 @@ const VERTEX = `#version 300 es
 `;
 
 const FRAGMENT = `#version 300 es
-    precision mediump float;
+    precision highp float;
 
-    uniform mediump usampler2D image;
+    uniform highp usampler2D image;
 
     // uniform variables should also be added to (1)webgl_instance.uniform (2)render function for init
     uniform float distortion_mask;

@@ -8,6 +8,8 @@
       transition,
     }"></canvas>
     <div class="tip" v-if="img">{{ Math.round(tip.scale * 100) }}%</div>
+    <button :class="{ 'edit-btn': true, reverse: ui_edit_reverse }"
+      @click="$emit('toggle_control'); ui_edit_reverse = !ui_edit_reverse">⬅</button>
   </div>
 </template>
 
@@ -137,6 +139,7 @@ export default {
   },
   data() {
     return {
+      ui_edit_reverse: false,
       canvas_key: 0,
       img_info: {
         width: 0,
@@ -224,6 +227,29 @@ export default {
 </script>
 
 <style scoped>
+@media only screen and (max-width: 600px) {
+  body .edit-btn {
+    display: block;
+  }
+}
+
+.edit-btn {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  right: 4px;
+  border: 0;
+  background: transparent;
+  font-weight: 400;
+  cursor: pointer;
+  font-size: 16px;
+  color: #aaaa;
+  transition: transform ease 0.2s;
+}
+.edit-btn.reverse {
+  transform: rotate(180deg);
+}
+
 canvas {
   image-rendering: pixelated;
 }
