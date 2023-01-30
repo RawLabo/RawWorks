@@ -7,8 +7,8 @@ import ControlPanel from './components/ControlPanel.vue'
 </script>
 
 <template>
-    <div :class="{'body-wrapper': true, fullscreen: fullscreen_mode}">
-        <photo-frame ref="photo_frame" :filename="filename" :img="img"
+    <div :class="{ 'body-wrapper': true, 'show-control': show_control_600, fullscreen: fullscreen_mode }">
+        <photo-frame ref="photo_frame" :filename="filename" :img="img" @toggle_control="show_control_600 = !show_control_600"
             @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
@@ -35,6 +35,7 @@ export default {
             white_balance: [],
             histogram_data: null,
             webgl_instance: null,
+            show_control_600: false,
             timer: {
                 file_to_load: 0,
                 file_loaded: 0,
@@ -88,13 +89,24 @@ export default {
 </script>
 
 <style scoped>
+@media only screen and (max-width: 600px) {
+    body .body-wrapper {
+        grid-template-columns: 1fr 0px;
+    }
+    body .body-wrapper.show-control {
+        grid-template-columns: 1fr 272px;
+    }
+}
+
 .body-wrapper {
     width: 100%;
     height: 100%;
     display: grid;
     grid-template-columns: 1fr 272px;
     grid-template-rows: 1fr auto;
+    transition: grid-template-columns ease 0.2s;
 }
+
 .fullscreen {
     grid-template-columns: 1fr 0px;
     grid-template-rows: 1fr 0px;
