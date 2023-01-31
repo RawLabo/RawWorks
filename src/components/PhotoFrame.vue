@@ -84,6 +84,9 @@ export default {
       this.checkCanvasTransform();
     },
     moveStart(e) {
+      this.$emit('toggle_control', true);
+      this.ui_edit_reverse = false;
+      
       if (e.touches) {
         if (e.touches.length > 1)
           return false;
