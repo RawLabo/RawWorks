@@ -1,7 +1,7 @@
 <template>
-  <div ref="container" class="container flex-center" @wheel="zoom" @gesturestart="touchZoomStart" @gesturechange="zoom"
-    @touchstart="moveStart" @touchmove="move" @touchend="moveEnd" @mousedown="moveStart" @mousemove="move"
-    @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom($event, 1)">
+  <div ref="container" class="container flex-center" @wheel="zoom" @touchstart="moveStart" @touchmove="move"
+    @touchend="moveEnd" @mousedown="moveStart" @mousemove="move" @mouseup="moveEnd" @mouseleave="moveEnd"
+    @dblclick="zoom($event, 1)">
     <canvas v-if="img" :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
@@ -22,7 +22,12 @@
 import { initWebgl, render } from "../webgl";
 
 let move_prev_pos = null;
-let touch_distence = 0;
+let touch_zoom_start = null;
+
+function get_distance_of_touches(touches) {
+  const [[x1, y1], [x2, y2]] = [[touches[0].clientX, touches[0].clientY], [touches[1].clientX, touches[1].clientY]];
+  return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
+}
 
 export default {
   props: ['img', 'filename'],
@@ -31,9 +36,6 @@ export default {
       if (p1 == 'width') {
         this.height = this[p1] / this.img_info.ratio;
       }
-    },
-    touchZoomStart(e) {
-      touch_distence = e.scale;
     },
     zoom(e, toggle_to_x) {
       if (e.preventDefault)
@@ -53,8 +55,7 @@ export default {
         return;
       }
 
-      const delta_y = e.scale ? (e.scale - touch_distence) * 1000 : toggle_to_x ? this.img_info[p1] * toggle_to_x - this[p1] : -e.deltaY;
-      touch_distence = e.scale;
+      const delta_y = e.delta_distance ? e.delta_distance / 100 : toggle_to_x ? this.img_info[p1] * toggle_to_x - this[p1] : -e.deltaY;
 
       this[p1] += delta_y;
       this.updateHeightAlso(p1);
@@ -86,10 +87,14 @@ export default {
     moveStart(e) {
       this.$emit('toggle_control', true);
       this.ui_edit_reverse = false;
-      
+
       if (e.touches) {
-        if (e.touches.length > 1)
-          return false;
+        if (e.touches.length > 2)
+          return;
+        if (e.touches.length === 2) {
+          touch_zoom_start = e.touches;
+          return;
+        }
 
         e = e.touches[0];
       }
@@ -97,9 +102,28 @@ export default {
       move_prev_pos = [e.clientX, e.clientY];
     },
     move(e) {
+      e.preventDefault();
+      
       if (e.touches) {
-        if (e.touches.length > 1)
-          return false;
+        if (e.touches.length > 2)
+          return;
+        if (e.touches.length === 2) {
+          const start_distance = get_distance_of_touches(touch_zoom_start);
+          const curr_distance = get_distance_of_touches(e.touches);
+
+          const [p1, p2] = touch_zoom_start;
+          const evt = {
+            delta_distance: curr_distance - start_distance,
+            pageX: (p1.pageX + p2.pageX) >> 1,
+            pageY: (p1.pageY + p2.pageY) >> 1
+          };
+
+          if (evt.delta_distance)
+            this.zoom(evt);
+
+          touch_zoom_start = e.touches;
+          return;
+        }
 
         e = e.touches[0];
       }
@@ -113,6 +137,7 @@ export default {
       }
     },
     moveEnd() {
+      touch_zoom_start = null;
       move_prev_pos = null;
     },
     checkCanvasTransform() {
