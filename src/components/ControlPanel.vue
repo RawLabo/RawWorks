@@ -82,6 +82,8 @@ const gen_xmp = r => `<?xml version="1.0" encoding="UTF-8"?>
 
 const reader = new FileReader();
 
+let shader_timeout = 0;
+
 export default {
     props: ['webgl_instance', 'timer', 'white_balance'],
     data() {
@@ -194,11 +196,14 @@ export default {
         setShader(name, value, method) {
             if (this.prevent_shader_update) return;
 
-            updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
-                window.sendToWorker('calc_histogram', pixels).then(data => {
-                    this.$emit("histogram_load", data);
+            clearTimeout(shader_timeout);
+            shader_timeout = setTimeout(() => {
+                updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
+                    window.sendToWorker('calc_histogram', pixels).then(data => {
+                        this.$emit("histogram_load", data);
+                    });
                 });
-            });
+            }, 1000 / 120);
         },
         resetShader(prevent_shader_update) {
             this.prevent_shader_update = !!prevent_shader_update;
