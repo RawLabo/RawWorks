@@ -8,7 +8,8 @@ import ControlPanel from './components/ControlPanel.vue'
 
 <template>
     <div :class="{ 'body-wrapper': true, 'show-control': show_control_600, fullscreen: fullscreen_mode }">
-        <photo-frame ref="photo_frame" :filename="filename" :img="img" @toggle_control="show_control_600 = !show_control_600"
+        <photo-frame ref="photo_frame" :filename="filename" :img="img"
+            @toggle_control="toggleControl"
             @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
@@ -46,6 +47,13 @@ export default {
         }
     },
     methods: {
+        toggleControl(force_close) {
+            if (force_close) {
+                this.show_control_600 = false;
+            } else {
+                this.show_control_600 = !this.show_control_600;
+            }
+        },
         prepare() {
             this.img = null;
             this.histogram_data = null;
@@ -93,6 +101,7 @@ export default {
     body .body-wrapper {
         grid-template-columns: 1fr 0px;
     }
+
     body .body-wrapper.show-control {
         grid-template-columns: 1fr 272px;
     }

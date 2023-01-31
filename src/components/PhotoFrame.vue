@@ -1,7 +1,7 @@
 <template>
-  <div ref="container" class="container flex-center" @wheel="zoom" @gesturestart="touchZoomStart" @gesturechange="zoom"
-    @touchstart="moveStart" @touchmove="move" @touchend="moveEnd" @mousedown="moveStart" @mousemove="move"
-    @mouseup="moveEnd" @mouseleave="moveEnd" @dblclick="zoom($event, 1)">
+  <div ref="container" class="container flex-center" @wheel="zoom" @touchstart="moveStart" @touchmove="move"
+    @touchend="moveEnd" @mousedown="moveStart" @mousemove="move" @mouseup="moveEnd" @mouseleave="moveEnd"
+    @dblclick="zoom($event, 1)">
     <canvas v-if="img" :data-filename="filename" class="selected" :key="canvas_key" ref="canvas" :style="{
       height: height < 0 ? 'auto' : height + 'px',
       transform: `translate(${left_offset}px, ${top_offset}px)`,
@@ -9,7 +9,12 @@
     }"></canvas>
     <div class="tip" v-if="img">{{ Math.round(tip.scale * 100) }}%</div>
     <button :class="{ 'edit-btn': true, reverse: ui_edit_reverse }"
-      @click="$emit('toggle_control'); ui_edit_reverse = !ui_edit_reverse">⬅</button>
+      @click="$emit('toggle_control'); ui_edit_reverse = !ui_edit_reverse">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <path
+          d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256S114.6 512 256 512s256-114.6 256-256zM215 127c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-71 71L392 232c13.3 0 24 10.7 24 24s-10.7 24-24 24l-214.1 0 71 71c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L103 273c-9.4-9.4-9.4-24.6 0-33.9L215 127z" />
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -17,7 +22,12 @@
 import { initWebgl, render } from "../webgl";
 
 let move_prev_pos = null;
-let touch_distence = 0;
+let touch_zoom_start = null;
+
+function get_distance_of_touches(touches) {
+  const [[x1, y1], [x2, y2]] = [[touches[0].clientX, touches[0].clientY], [touches[1].clientX, touches[1].clientY]];
+  return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
+}
 
 export default {
   props: ['img', 'filename'],
@@ -26,9 +36,6 @@ export default {
       if (p1 == 'width') {
         this.height = this[p1] / this.img_info.ratio;
       }
-    },
-    touchZoomStart(e) {
-      touch_distence = e.scale;
     },
     zoom(e, toggle_to_x) {
       if (e.preventDefault)
@@ -48,8 +55,7 @@ export default {
         return;
       }
 
-      const delta_y = e.scale ? (e.scale - touch_distence) * 1000 : toggle_to_x ? this.img_info[p1] * toggle_to_x - this[p1] : -e.deltaY;
-      touch_distence = e.scale;
+      const delta_y = e.delta_distance ? e.delta_distance / 100 : toggle_to_x ? this.img_info[p1] * toggle_to_x - this[p1] : -e.deltaY;
 
       this[p1] += delta_y;
       this.updateHeightAlso(p1);
@@ -79,9 +85,16 @@ export default {
       this.checkCanvasTransform();
     },
     moveStart(e) {
+      this.$emit('toggle_control', true);
+      this.ui_edit_reverse = false;
+
       if (e.touches) {
-        if (e.touches.length > 1)
-          return false;
+        if (e.touches.length > 2)
+          return;
+        if (e.touches.length === 2) {
+          touch_zoom_start = e.touches;
+          return;
+        }
 
         e = e.touches[0];
       }
@@ -89,9 +102,28 @@ export default {
       move_prev_pos = [e.clientX, e.clientY];
     },
     move(e) {
+      e.preventDefault();
+      
       if (e.touches) {
-        if (e.touches.length > 1)
-          return false;
+        if (e.touches.length > 2)
+          return;
+        if (e.touches.length === 2) {
+          const start_distance = get_distance_of_touches(touch_zoom_start);
+          const curr_distance = get_distance_of_touches(e.touches);
+
+          const [p1, p2] = touch_zoom_start;
+          const evt = {
+            delta_distance: curr_distance - start_distance,
+            pageX: (p1.pageX + p2.pageX) >> 1,
+            pageY: (p1.pageY + p2.pageY) >> 1
+          };
+
+          if (evt.delta_distance)
+            this.zoom(evt);
+
+          touch_zoom_start = e.touches;
+          return;
+        }
 
         e = e.touches[0];
       }
@@ -105,6 +137,7 @@ export default {
       }
     },
     moveEnd() {
+      touch_zoom_start = null;
       move_prev_pos = null;
     },
     checkCanvasTransform() {
@@ -230,22 +263,23 @@ export default {
 @media only screen and (max-width: 600px) {
   body .edit-btn {
     display: block;
+    width: 16px;
+    height: 16px;
+    fill: #aaaa;
   }
 }
 
 .edit-btn {
   display: none;
   position: absolute;
-  bottom: 0;
-  right: 4px;
+  bottom: 2px;
+  right: 2px;
   border: 0;
   background: transparent;
-  font-weight: 400;
   cursor: pointer;
-  font-size: 16px;
-  color: #aaaa;
   transition: transform ease 0.2s;
 }
+
 .edit-btn.reverse {
   transform: rotate(180deg);
 }
