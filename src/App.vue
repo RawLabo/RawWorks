@@ -8,12 +8,11 @@ import ControlPanel from './components/ControlPanel.vue'
 
 <template>
     <div :class="{ 'body-wrapper': true, 'show-control': show_control_600, fullscreen: fullscreen_mode }">
-        <photo-frame ref="photo_frame" :filename="filename" :img="img"
-            @toggle_control="toggleControl"
+        <photo-frame ref="photo_frame" :filename="filename" :img="img" @toggle_control="toggleControl"
             @histogram_load="(hd, wi) => { histogram_data = hd; webgl_instance = wi }" />
         <div class="side-panel">
             <histogram :histogram="histogram_data" />
-            <control-panel :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
+            <control-panel :color_matrix="color_matrix" :white_balance="white_balance" :timer="timer" :webgl_instance="webgl_instance"
                 @histogram_load="hd => histogram_data = hd" @change_demosaicing="$refs.photo_lst_comp.loadImage({})" />
             <perf-timer :timer="timer" />
             <div :class="{ 'app-info': true, warning: app_version.indexOf('↑') > -1 }">RawWorks v{{ app_version }}<div
@@ -34,6 +33,7 @@ export default {
             filename: '',
             img: null,
             white_balance: [],
+            color_matrix: [],
             histogram_data: null,
             webgl_instance: null,
             show_control_600: false,
@@ -62,10 +62,13 @@ export default {
     },
     watch: {
         img(v) {
-            if (v)
+            if (v) {
                 this.white_balance = [].slice.call(v.white_balance);
-            else
+                this.color_matrix = [].slice.call(v.color_matrix);
+            } else {
                 this.white_balance = [];
+                this.color_matrix = [];
+            }
         },
         fullscreen_mode() {
             this.$nextTick(() => {

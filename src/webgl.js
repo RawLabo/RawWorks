@@ -245,10 +245,14 @@ export function render(webgl_instance, img_data, size, orientation, white_balanc
     renderWithPixelReading(program, gl, width, height, pixels_callback);
 }
 
+const THREE_PARAMS_FN_SET = new Set(['uniformMatrix2fv', 'uniformMatrix3fv']);
 export function updateUniform(webgl_instance, uniform_fn, uniform_name, data, pixels_callback) {
     const { gl, uniform, program } = webgl_instance;
 
-    gl[uniform_fn](uniform[uniform_name], data);
+    if (THREE_PARAMS_FN_SET.has(uniform_fn))
+        gl[uniform_fn](uniform[uniform_name], false, data);
+    else
+        gl[uniform_fn](uniform[uniform_name], data);
 
     const width = gl.canvas.width;
     const height = gl.canvas.height;
@@ -267,6 +271,7 @@ export function updateUniformAllVars(webgl_instance, data, pixels_callback) {
     gl.uniform1f(uniform.gamma, data.gamma);
     gl.uniform1f(uniform.vibrance, data.vibrance);
     gl.uniform3fv(uniform.white_balance, data.white_balance);
+    gl.uniformMatrix3fv(uniform.color_matrix, false, data.color_matrix);
 
     const width = gl.canvas.width;
     const height = gl.canvas.height;
