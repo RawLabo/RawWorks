@@ -1,147 +1,179 @@
 <template>
     <div class="container" v-if="webgl_instance">
 
-        <label>Gamma {{ shader.gamma }}</label>
-        <o-slider :disabled="show_origin" v-model="shader.gamma" :step="0.01" :min="0" :max="10" :tooltip="false"
-            @dblclick="shader.gamma = 2.22" />
-
-        <label>White point {{ shader.white_point }}</label>
-        <o-slider :disabled="show_origin" v-model="shader.white_point" :step="0.001" :min="-1" :max="1" :tooltip="false"
-            @dblclick="shader.white_point = 0" />
-
-        <label>Black point {{ shader.black_point }}</label>
-        <o-slider :disabled="show_origin" v-model="shader.black_point" :step="0.001" :min="-1" :max="1" :tooltip="false"
-            @dblclick="shader.black_point = 0" />
-
-        <label>Highlight {{ shader.highlight_point }}</label>
-        <o-slider :disabled="show_origin" v-model="shader.highlight_point" :step="0.01" :min="-1" :max="1"
-            :tooltip="false" @dblclick="shader.highlight_point = 0" />
-
-        <label>Shadow {{ shader.shadow_point }}</label>
-        <o-slider :disabled="show_origin" v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1" :tooltip="false"
-            @dblclick="shader.shadow_point = 0" />
-
-        <label>Vibrance {{ shader.vibrance }}</label>
-        <o-slider :disabled="show_origin" v-model="shader.vibrance" :step="0.01" :min="-1" :max="1" :tooltip="false"
-            @dblclick="shader.vibrance = 0" />
-
-        <label>White balance {{ shader.white_balance[0].toFixed(3) }} | {{ shader.white_balance[2].toFixed(3) }}</label>
-        <o-slider :disabled="show_origin" v-model="shader.white_balance[0]" :step="0.001" :min="0" :max="5"
-            :tooltip="false" @dblclick="shader.white_balance[0] = white_balance[0]" />
-        <o-slider :disabled="show_origin" v-model="shader.white_balance[2]" :step="0.001" :min="0" :max="5"
-            :tooltip="false" @dblclick="shader.white_balance[2] = white_balance[2]" />
-
-        <label>ColorMatrix Red Δ {{ (shader.color_matrix[0] + shader.color_matrix[1] +
-        shader.color_matrix[2]).toFixed(3) }}</label>
-        <div class="field-wrapper">
-            <label>Red {{ shader.color_matrix[0].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color cyan"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[0]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[0] = color_matrix[0]" />
-                <span class="color red"></span>
-            </div>
-            <label>Green {{ shader.color_matrix[1].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color cyan"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[1]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[1] = color_matrix[1]" />
-                <span class="color red"></span>
-            </div>
-            <label>Blue {{ shader.color_matrix[2].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color cyan"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[2]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[2] = color_matrix[2]" />
-                <span class="color red"></span>
-            </div>
-        </div>
-
-
-        <label>ColorMatrix Green Δ {{ (shader.color_matrix[3] + shader.color_matrix[4] +
-        shader.color_matrix[5]).toFixed(3) }}</label>
-        <div class="field-wrapper">
-            <label>Red {{ shader.color_matrix[3].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color purple"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[3]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[3] = color_matrix[3]" />
-                <span class="color green"></span>
-            </div>
-            <label>Green {{ shader.color_matrix[4].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color purple"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[4]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[4] = color_matrix[4]" />
-                <span class="color green"></span>
-            </div>
-            <label>Blue {{ shader.color_matrix[5].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color purple"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[5]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[5] = color_matrix[5]" />
-                <span class="color green"></span>
-            </div>
-        </div>
-
-
-        <label>ColorMatrix Blue Δ {{ (shader.color_matrix[6] + shader.color_matrix[7] +
-        shader.color_matrix[8]).toFixed(3) }}</label>
-        <div class="field-wrapper">
-            <label>Red {{ shader.color_matrix[6].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color yellow"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[6]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[6] = color_matrix[6]" />
-                <span class="color blue"></span>
-            </div>
-            <label>Green {{ shader.color_matrix[7].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color yellow"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[7]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[7] = color_matrix[7]" />
-                <span class="color blue"></span>
-            </div>
-            <label>Blue {{ shader.color_matrix[8].toFixed(3) }}</label>
-            <div class="flex">
-                <span class="color yellow"></span>
-                <o-slider :disabled="show_origin" v-model="shader.color_matrix[8]" :step="0.01" :min="-3" :max="3"
-                    :tooltip="false" @dblclick="shader.color_matrix[8] = color_matrix[8]" />
-                <span class="color blue"></span>
-            </div>
-        </div>
-
-        <label>Distortion X:{{ shader.distortion[0] }} Y:{{ shader.distortion[1] }}</label>
-        <o-checkbox class="distortion-mask" v-model="shader.distortion_mask" variant="transparent">Larger
-            view</o-checkbox>
-        <o-slider :disabled="show_origin" v-model="shader.distortion[0]" :step="0.01" :min="-1" :max="1"
-            :tooltip="false" @dblclick="shader.distortion[0] = 0" />
-        <o-slider :disabled="show_origin" v-model="shader.distortion[1]" :step="0.01" :min="-1" :max="1"
-            :tooltip="false" @dblclick="shader.distortion[1] = 0" />
-
         <div class="flex">
             <o-checkbox v-model="show_origin" variant="transparent">Show origin</o-checkbox>
             <o-checkbox v-model="better_demosaicing" variant="transparent">Better demosaicing</o-checkbox>
         </div>
 
-        <div class="flex">
-            <o-checkbox v-model="icc_profile.enable" variant="transparent">
-                <a href="#">{{ icc_profile.name }}</a>
-                <input type="file" accept=".icc" name="icc_profile" @change="iccLoad" />
-            </o-checkbox>
+        <button :class="{ collapse: true, open: panel.luminance }" @click="panel.luminance = !panel.luminance">Luminance
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                <path
+                    d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z" />
+            </svg>
+        </button>
+        <div v-show="panel.luminance">
+            <label>Gamma {{ shader.gamma }}</label>
+            <o-slider :disabled="show_origin" v-model="shader.gamma" :step="0.01" :min="0" :max="10" :tooltip="false"
+                @dblclick="shader.gamma = 2.22" />
+
+            <label>White point {{ shader.white_point }}</label>
+            <o-slider :disabled="show_origin" v-model="shader.white_point" :step="0.001" :min="-1" :max="1"
+                :tooltip="false" @dblclick="shader.white_point = 0" />
+
+            <label>Black point {{ shader.black_point }}</label>
+            <o-slider :disabled="show_origin" v-model="shader.black_point" :step="0.001" :min="-1" :max="1"
+                :tooltip="false" @dblclick="shader.black_point = 0" />
+
+            <label>Highlight {{ shader.highlight_point }}</label>
+            <o-slider :disabled="show_origin" v-model="shader.highlight_point" :step="0.01" :min="-1" :max="1"
+                :tooltip="false" @dblclick="shader.highlight_point = 0" />
+
+            <label>Shadow {{ shader.shadow_point }}</label>
+            <o-slider :disabled="show_origin" v-model="shader.shadow_point" :step="0.01" :min="-1" :max="1"
+                :tooltip="false" @dblclick="shader.shadow_point = 0" />
         </div>
 
-        <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export
-            JPG</o-button>
-        <div class="field-wrapper">
-            Rating {{ rating }}
-            <o-slider v-model="rating" :step="1" :min="1" :max="5" :tooltip="false" rounded variant="info" />
-            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportAdobeXMP">↓ Adobe
-                XMP</o-button>
-            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportDarktableXMP">↓ darktable
-                XMP</o-button>
-            <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportPP3">↓ PP3</o-button>
+        <button :class="{ collapse: true, open: panel.color }" @click="panel.color = !panel.color">Color
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                <path
+                    d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z" />
+            </svg>
+        </button>
+        <div v-show="panel.color">
+
+            <label>Vibrance {{ shader.vibrance }}</label>
+            <o-slider :disabled="show_origin" v-model="shader.vibrance" :step="0.01" :min="-1" :max="1" :tooltip="false"
+                @dblclick="shader.vibrance = 0" />
+
+            <label>White balance {{ shader.white_balance[0].toFixed(3) }} | {{
+                shader.white_balance[2].toFixed(3)
+            }}</label>
+            <o-slider :disabled="show_origin" v-model="shader.white_balance[0]" :step="0.001" :min="0" :max="5"
+                :tooltip="false" @dblclick="shader.white_balance[0] = white_balance[0]" />
+            <o-slider :disabled="show_origin" v-model="shader.white_balance[2]" :step="0.001" :min="0" :max="5"
+                :tooltip="false" @dblclick="shader.white_balance[2] = white_balance[2]" />
+
+            <label>ColorMatrix Red Δ {{ (shader.color_matrix[0] + shader.color_matrix[1] +
+            shader.color_matrix[2]).toFixed(3) }}</label>
+            <div class="field-wrapper">
+                <label>Red {{ shader.color_matrix[0].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color cyan"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[0]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[0] = color_matrix[0]" />
+                    <span class="color red"></span>
+                </div>
+                <label>Green {{ shader.color_matrix[1].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color cyan"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[1]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[1] = color_matrix[1]" />
+                    <span class="color red"></span>
+                </div>
+                <label>Blue {{ shader.color_matrix[2].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color cyan"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[2]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[2] = color_matrix[2]" />
+                    <span class="color red"></span>
+                </div>
+            </div>
+
+
+            <label>ColorMatrix Green Δ {{ (shader.color_matrix[3] + shader.color_matrix[4] +
+            shader.color_matrix[5]).toFixed(3) }}</label>
+            <div class="field-wrapper">
+                <label>Red {{ shader.color_matrix[3].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color purple"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[3]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[3] = color_matrix[3]" />
+                    <span class="color green"></span>
+                </div>
+                <label>Green {{ shader.color_matrix[4].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color purple"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[4]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[4] = color_matrix[4]" />
+                    <span class="color green"></span>
+                </div>
+                <label>Blue {{ shader.color_matrix[5].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color purple"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[5]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[5] = color_matrix[5]" />
+                    <span class="color green"></span>
+                </div>
+            </div>
+
+
+            <label>ColorMatrix Blue Δ {{ (shader.color_matrix[6] + shader.color_matrix[7] +
+            shader.color_matrix[8]).toFixed(3) }}</label>
+            <div class="field-wrapper">
+                <label>Red {{ shader.color_matrix[6].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color yellow"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[6]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[6] = color_matrix[6]" />
+                    <span class="color blue"></span>
+                </div>
+                <label>Green {{ shader.color_matrix[7].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color yellow"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[7]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[7] = color_matrix[7]" />
+                    <span class="color blue"></span>
+                </div>
+                <label>Blue {{ shader.color_matrix[8].toFixed(3) }}</label>
+                <div class="flex">
+                    <span class="color yellow"></span>
+                    <o-slider :disabled="show_origin" v-model="shader.color_matrix[8]" :step="0.01" :min="-3" :max="3"
+                        :tooltip="false" @dblclick="shader.color_matrix[8] = color_matrix[8]" />
+                    <span class="color blue"></span>
+                </div>
+            </div>
+
         </div>
+        <button :class="{ collapse: true, open: panel.export }" @click="panel.export = !panel.export">Export
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                <path
+                    d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z" />
+            </svg>
+        </button>
+        <div v-show="panel.export">
+
+            <label>Distortion X:{{ shader.distortion[0] }} Y:{{ shader.distortion[1] }}</label>
+            <o-checkbox class="distortion-mask" v-model="shader.distortion_mask" variant="transparent">Larger
+                view</o-checkbox>
+            <o-slider :disabled="show_origin" v-model="shader.distortion[0]" :step="0.01" :min="-1" :max="1"
+                :tooltip="false" @dblclick="shader.distortion[0] = 0" />
+            <o-slider :disabled="show_origin" v-model="shader.distortion[1]" :step="0.01" :min="-1" :max="1"
+                :tooltip="false" @dblclick="shader.distortion[1] = 0" />
+
+
+            <div class="flex">
+                <o-checkbox v-model="icc_profile.enable" variant="transparent">
+                    <a href="#">{{ icc_profile.name }}</a>
+                    <input type="file" accept=".icc" name="icc_profile" @change="iccLoad" />
+                </o-checkbox>
+            </div>
+
+            <o-button class="export-btn export-jpg" :disabled="generating_exports" outlined @click="exportImg">↓ Export
+                JPG</o-button>
+            <div class="field-wrapper">
+                Rating {{ rating }}
+                <o-slider v-model="rating" :step="1" :min="1" :max="5" :tooltip="false" rounded variant="info" />
+                <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportAdobeXMP">↓ Adobe
+                    XMP</o-button>
+                <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportDarktableXMP">↓
+                    darktable
+                    XMP</o-button>
+                <o-button class="export-btn" :disabled="generating_exports" outlined @click="exportPP3">↓ PP3</o-button>
+            </div>
+        </div>
+
+
     </div>
 </template>
 
@@ -163,7 +195,10 @@ const gen_xmp = r => `<?xml version="1.0" encoding="UTF-8"?>
 
 const reader = new FileReader();
 
-let shader_timeout = 0;
+let shader_timeout = {
+    t: 0,
+    name: ''
+}
 
 export default {
     props: ['webgl_instance', 'timer', 'white_balance', 'color_matrix'],
@@ -281,8 +316,11 @@ export default {
         setShader(name, value, method) {
             if (this.prevent_shader_update) return;
 
-            clearTimeout(shader_timeout);
-            shader_timeout = setTimeout(() => {
+            if (shader_timeout.name === name)
+                clearTimeout(shader_timeout.t);
+
+            shader_timeout.name = name;
+            shader_timeout.t = setTimeout(() => {
                 updateUniform(this.webgl_instance, method || 'uniform1f', name, value, pixels => {
                     window.sendToWorker('calc_histogram', pixels).then(data => {
                         this.$emit("histogram_load", data);
@@ -371,7 +409,7 @@ export default {
             deep: true
         },
         'shader.color_matrix': {
-            handler(v) {
+            handler() {
                 this.setShader('color_matrix', this.shader.color_matrix, 'uniformMatrix3fv');
             },
             deep: true
@@ -409,6 +447,60 @@ export default {
 <style scoped>
 .container {
     margin-bottom: .5rem;
+}
+
+button.collapse {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    background: linear-gradient(90deg, #222 0%, #333 100%);
+    border: 0;
+    font-variation-settings: 'slnt' 0, 'wght' 200;
+    transition: font-variation-settings ease 0.3s;
+    text-align: right;
+    z-index: 1;
+    padding: 4px;
+    cursor: pointer;
+}
+
+button.collapse svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    display: inline-block;
+    fill: #777;
+    transition: transform ease 0.3s, fill ease 0.3s;
+    transform: rotate(90deg);
+}
+
+button.collapse.open svg {
+    fill: #aaa;
+    transform: rotate(0deg);
+}
+
+button.collapse.open {
+    font-variation-settings: 'slnt' -5, 'wght' 600;
+}
+
+button.collapse::before {
+    position: absolute;
+    content: "";
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(90deg, #222 0%, #444 100%);
+    z-index: -1;
+    transition: opacity ease 0.3s;
+    opacity: 0;
+}
+
+button.collapse.open::before {
+    opacity: 1;
+}
+
+button.collapse:hover::before {
+    opacity: 1;
 }
 
 .container label {
