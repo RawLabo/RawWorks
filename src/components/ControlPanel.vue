@@ -578,7 +578,7 @@ a.disabled {
 }
 
 .green {
-    background: green;
+    background: #0f0;
 }
 
 .purple {
